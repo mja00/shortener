@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Links{% endblock %}
+{% block content %}
+    <div class="container mt-2">
+        <table class="table table-striped table-hover" id="links">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">URL</th>
+                <th scope="col">Destination</th>
+                <th scope="col">Clicks</th>
+                <th scope="col">Max Clicks</th>
+                <th scope="col">Expired</th>
+                <th scope="col">Expiration Date</th>
+                <th scope="col">Creation Date</th>
+                <th scope="col">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for link in short_links %}
+                <tr>
+                    <th scope="row">{{ link.id }}</th>
+                    <td><a href="{{ url_for("redirect_to_short_url", short_url=link.short_url) }}">{{ link.short_url }}</a></td>
+                    <td>{{ link.original_url }}</td>
+                    <td>{{ link.current_clicks }}</td>
+                    <td>{{ link.max_clicks }}</td>
+                    <td>{% if link.expired %}Yes{% else %}No{% endif %}</td>
+                    <td id="expiration-date-{{ link.id }}">{{ link.expiration_date }}</td>
+                    <td id="creation-date-{{ link.id }}">{{ link.created_at}}</td>
+                    <td>
+                        <!-- POST delete button -->
+                        {% if not link.deleted %}
+                        <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
+                            <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
+                        </form>
+                        {% endif %}
+                        {% if link.deleted %}
+                            <div class="btn-group" role="group">
+                            <form action="{{ url_for("restore_link", link_id=link.id) }}" method="post">
+                                <button data-toggle="tooltip" data-placement="top" title="Restore" type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
+                            </form>
+                            <form action="{{ url_for("hard_delete_link", link_id=link.id) }}" method="post">
+                                <button data-toggle="tooltip" data-placement="top" title="Hard Delete" type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
+                            </form>
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
+{% block userscripts %}
+    <script>
+        $(document).ready(function () {
+            // Init datatables
+            let table = $('#links').DataTable({
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    {
+                        "targets": [-1, -2],
+                        "orderable": false
+                    }
+                ]
+            });
+
+            // Loop through all the expiration-date-* elements and convert them to local time
+            $('#links').find('td[id^=expiration-date-]').each(function () {
+                let date = $(this).text();
+                if (date !== 'None') {
+                    let date_obj = new Date(date + " UTC");
+                    let local_date = date_obj.toLocaleString();
+                    $(this).text(local_date);
+                }
+            });
+            // Loop through all the creation-date-* elements and convert them to local time
+            $('#links').find('td[id^=creation-date-]').each(function () {
+                let date = $(this).text();
+                let date_obj = new Date(date + " UTC");
+                let local_date = date_obj.toLocaleString();
+                $(this).text(local_date);
+            });
+        });
+    </script>
+{% endblock %}

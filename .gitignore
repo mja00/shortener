@@ -1,0 +1,8 @@
+.env.prod
+.env.prod.db
+
+*.pyc
+
+services/web/project/venv
+
+.idea

@@ -14,7 +14,7 @@
     <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
     <option name="TEMPLATE_FOLDERS">
       <list>
-        <option value="$MODULE_DIR$/../shortener\templates" />
+        <option value="$MODULE_DIR$/services/web/project/templates" />
       </list>
     </option>
   </component>

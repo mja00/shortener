@@ -15,9 +15,9 @@ def create_db():
 @cli.command("seed_db")
 def seed_db():
     db.session.add(ShortLink(original_url="https://www.google.com", short_url="google"))
+    db.session.add(ShortLink(original_url="https://www.youtube.com", short_url="youtube", max_clicks=5))
     db.session.commit()
 
 
 if __name__ == '__main__':
     cli()
-

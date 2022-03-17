@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Create{% endblock %}
+{% block content %}
+    <div class="container mt-2">
+        <div class="card">
+            <div class="card-header">
+                Create new short URL
+            </div>
+            <div class="card-body">
+                <form method="POST" action="#" id="create-form">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="url">URL</label>
+                                <input type="url" class="form-control" id="url" placeholder="Enter URL" name="url" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="alias">Alias</label>
+                                <input type="text" class="form-control" id="alias" placeholder="Enter alias"
+                                       name="alias" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <!-- Max view count -->
+                            <div class="form-group">
+                                <label for="max_clicks">Max Click Count</label>
+                                <input type="number" class="form-control" id="max_clicks"
+                                       placeholder="-1" name="max_clicks" value="-1">
+                                <small class="text-muted">Setting this value to -1 will disable the maximum</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <!-- Expiration date -->
+                            <div class="form-group">
+                                <label for="expiration_date_shown">Expiration Date</label>
+                                <input type="datetime-local" class="form-control" id="expiration_date_shown" name="expiration_date_shown">
+                                <small class="text-muted">Setting this value to empty will disable the expiration</small>
+                            </div>
+                        </div>
+                        <div class="col" hidden>
+                            <!-- Expiration date -->
+                            <div class="form-group">
+                                <label for="expiration_date">Expiration Date</label>
+                                <input type="number" class="form-control" id="expiration_date" name="expiration_date">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block userscripts %}
+    <script>
+        function createUrl() {
+            console.log("createUrl");
+            let url = $('#url').val();
+            let alias = $('#alias').val();
+            let max_clicks = $('#max_clicks').val();
+            let expiration_date = $('#expiration_date_shown').val();
+            // Convert datetime-local to datetime as UTC
+            if (expiration_date) {
+                expiration_date = new Date(expiration_date).valueOf();
+            }
+            // Create a hidden form with this data and submit it
+            let form = $('<form>', {
+                'action': '{{ url_for("create") }}',
+                'method': 'POST',
+                'hidden': true
+            });
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'url',
+                'value': url
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'alias',
+                'value': alias
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'max_clicks',
+                'value': max_clicks
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'expiration_date',
+                'value': expiration_date
+            }));
+            $('body').append(form);
+            form.submit();
+
+        }
+        // Get the form and add an event listener
+        document.getElementById('create-form').addEventListener('submit', function (e) {
+            console.log('form submitted');
+            e.preventDefault();
+            createUrl();
+        });
+    </script>
+{% endblock %}

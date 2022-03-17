@@ -5,9 +5,9 @@ services:
     build:
       context: ./services/web
       dockerfile: Dockerfile.prod
-    command: gunicorn --bind 127.0.0.1:5000 manage:app
-    ports:
-      - "5000:5000"
+    command: gunicorn --bind=unix:/tmp/gunicorn.sock manage:app
+    volumes:
+      - /home/mja00/shortener/shortener.sock:/tmp/gunicorn.sock
     env_file:
       - ./.env.prod
     depends_on:

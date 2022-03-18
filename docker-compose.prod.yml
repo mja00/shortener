@@ -5,7 +5,7 @@ services:
     build:
       context: ./services/web
       dockerfile: Dockerfile.prod
-    command: gunicorn --bind 127.0.0.1:5000 manage:app
+    command: gunicorn --bind 0.0.0.0:5000 manage:app
     ports:
       - "127.0.0.1:5000:5000"
     env_file:

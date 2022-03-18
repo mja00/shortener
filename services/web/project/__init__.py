@@ -84,7 +84,7 @@ def create():
             short_link = ShortLink(url, alias, max_clicks, expiration_date)
             db.session.add(short_link)
             db.session.commit()
-            flash(f'Short link created successfully!', 'success')
+            flash('Short link created successfully!', 'success')
             return redirect(url_for('links'))
         except sqlalchemy.exc.DataError as e:
             flash(f'Error: {e}', 'danger')
@@ -188,4 +188,3 @@ def redirect_to_short_url(short_url):
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
-

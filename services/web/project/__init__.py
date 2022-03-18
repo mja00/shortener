@@ -52,6 +52,14 @@ def create_alias_till_unique(alias):
         return alias
 
 
+def row2dict(row):
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = getattr(row, column.name)
+
+    return d
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -97,7 +105,7 @@ def create():
 @login_required
 def links():
     # Get all short links
-    short_links = ShortLink.query.filter_by(deleted=False).all()
+    short_links = ShortLink.query.filter_by(deleted=False, expired=False).all()
     return render_template('links.html', short_links=short_links)
 
 
@@ -107,6 +115,29 @@ def links_deleted():
     # Get all short links
     short_links = ShortLink.query.filter_by(deleted=True).all()
     return render_template('links.html', short_links=short_links)
+
+
+@app.route('/links/expired')
+@login_required
+def links_expired():
+    # Get all short links
+    short_links = ShortLink.query.filter_by(expired=True).all()
+    return render_template('links.html', short_links=short_links)
+
+
+@app.route('/links/info/<alias>')
+@login_required
+def link_info(alias):
+    # Get the short link
+    short_link = ShortLink.query.filter_by(short_url=alias).first()
+    if not short_link:
+        return jsonify({'error': 'Short link not found'})
+    return_dict = row2dict(short_link)
+    try:
+        return_dict['created_by'] = short_link.owner.username
+    except AttributeError:
+        return_dict['created_by'] = "Unknown"
+    return jsonify(return_dict)
 
 
 @app.route('/links/delete/<int:link_id>', methods=['POST'])

@@ -88,9 +88,11 @@
                                         <i class="fa-solid fa-user"></i> {{ current_user.username }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="{{ url_for('links') }}">All Links</a>
-                                        <a class="dropdown-item" href="{{ url_for('links_deleted') }}">Deleted Links</a>
                                         <a class="dropdown-item" href="{{ url_for('create') }}">Create Link</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="{{ url_for('links') }}">Active Links</a>
+                                        <a class="dropdown-item" href="{{ url_for('links_expired') }}">Expired Links</a>
+                                        <a class="dropdown-item" href="{{ url_for('links_deleted') }}">Deleted Links</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a>
                                     </div>

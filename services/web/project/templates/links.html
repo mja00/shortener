@@ -20,38 +20,110 @@
             {% for link in short_links %}
                 <tr>
                     <th scope="row">{{ link.id }}</th>
-                    <td><a href="{{ url_for("redirect_to_short_url", short_url=link.short_url) }}">{{ link.short_url }}</a></td>
+                    <td>
+                        <a href="{{ url_for("redirect_to_short_url", short_url=link.short_url) }}">{{ link.short_url }}</a>
+                    </td>
                     <td>{{ link.original_url }}</td>
                     <td>{{ link.current_clicks }}</td>
                     <td>{{ link.max_clicks }}</td>
                     <td>{% if link.expired %}Yes{% else %}No{% endif %}</td>
                     <td id="expiration-date-{{ link.id }}">{{ link.expiration_date }}</td>
-                    <td id="creation-date-{{ link.id }}">{{ link.created_at}}</td>
+                    <td id="creation-date-{{ link.id }}">{{ link.created_at }}</td>
                     <td>
                         <!-- POST delete button -->
-                        {% if not link.deleted %}
-                        <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
-                            <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
-                        </form>
-                        {% endif %}
-                        {% if link.deleted %}
-                            <div class="btn-group" role="group">
-                            <form action="{{ url_for("restore_link", link_id=link.id) }}" method="post">
-                                <button data-toggle="tooltip" data-placement="top" title="Restore" type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
-                            </form>
-                            <form action="{{ url_for("hard_delete_link", link_id=link.id) }}" method="post">
-                                <button data-toggle="tooltip" data-placement="top" title="Hard Delete" type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
-                            </form>
-                            </div>
-                        {% endif %}
+                        <div class="btn-group" role="group">
+                            {% if not link.deleted %}
+                                <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
+                                    <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit"
+                                            class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
+                                </form>
+                            {% endif %}
+                            {% if link.deleted %}
+                                <form action="{{ url_for("restore_link", link_id=link.id) }}" method="post">
+                                    <button data-toggle="tooltip" data-placement="top" title="Restore" type="submit"
+                                            class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
+                                </form>
+                                <form action="{{ url_for("hard_delete_link", link_id=link.id) }}" method="post">
+                                    <button data-toggle="tooltip" data-placement="top" title="Hard Delete"
+                                            type="submit"
+                                            class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <button onclick="showInfo('{{ link.short_url }}')" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="top" title="Info"><i class="fa-solid fa-eye"></i></button>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
         </table>
+        <!-- Info Modal -->
+        <div class="modal" tabindex="-1" role="dialog" id="info-modal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modal-title">Info for </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list-unstyled">
+                            <li id="link-id">Link ID:</li>
+                            <li id="link-url">Link URL:</li>
+                            <li id="link-destination">Link Destination:</li>
+                            <li id="link-clicks">Link Clicks:</li>
+                            <li id="link-max-clicks">Link Max Clicks:</li>
+                            <li id="link-expired">Link Expired:</li>
+                            <li id="link-expiration-date">Link Expiration Date:</li>
+                            <li id="link-creation-date">Link Creation Date:</li>
+                            <li id="link-created-by">Created by:</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
 {% block userscripts %}
     <script>
+
+        function showInfo(link_id) {
+            // GET request to /links/info/<alias>
+            $.ajax(
+                {
+                    url: '/links/info/' + link_id,
+                    type: 'GET',
+                    success: function (data) {
+                        let max_clicks;
+                        let expiration_date;
+                        // Check if an error occurred
+                        if (data.error) {
+                            console.log(data.error);
+                            return;
+                        }
+                        // Set the info modal's content
+                        $('#modal-title').html('Info for ' + data.short_url);
+                        $('#link-id').html('Link ID: ' + data.id);
+                        $('#link-url').html('Link URL: ' + data.short_url);
+                        $('#link-destination').html(`Link Destination: <a href="${data.original_url}">${data.original_url}</a>`);
+                        $('#link-clicks').html('Link Clicks: ' + data.current_clicks);
+                        max_clicks = (data.max_clicks === -1) ? 'Unlimited' : data.max_clicks;
+                        $('#link-max-clicks').html('Link Max Clicks: ' + max_clicks);
+                        $('#link-expired').html('Link Expired: ' + data.expired);
+                        expiration_date = (data.expiration_date === null) ? 'Never' : data.expiration_date;
+                        $('#link-expiration-date').html('Link Expiration Date: ' + expiration_date);
+                        $('#link-creation-date').html('Link Creation Date: ' + data.created_at);
+                        $('#link-created-by').html('Created by: ' + data.created_by);
+                        // Show the modal
+                        $('#info-modal').modal('show');
+                    }
+                }
+            );
+        }
+
         $(document).ready(function () {
             // Init datatables
             let table = $('#links').DataTable({

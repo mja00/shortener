@@ -81,9 +81,14 @@
             // Loop through all the creation-date-* elements and convert them to local time
             $('#links').find('td[id^=creation-date-]').each(function () {
                 let date = $(this).text();
+                // Create a new Date object and catch if it's invalid
                 let date_obj = new Date(date + " UTC");
-                let local_date = date_obj.toLocaleString();
-                $(this).text(local_date);
+                if (date_obj.toString() === 'Invalid Date') {
+                    $(this).text(date);
+                } else {
+                    let local_date = date_obj.toLocaleString();
+                    $(this).text(local_date);
+                }
             });
         });
     </script>

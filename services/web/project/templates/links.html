@@ -72,8 +72,14 @@
             // Loop through all the expiration-date-* elements and convert them to local time
             $('#links').find('td[id^=expiration-date-]').each(function () {
                 let date = $(this).text();
-                if (date !== 'None') {
-                    let date_obj = new Date(date + " UTC");
+                let day = date.split(" ")[0];
+                let time = date.split(" ")[1];
+                let temp_date = day + "T" + time + "Z";
+                // Create a new Date object and catch if it's invalid
+                let date_obj = new Date(temp_date);
+                if (date_obj.toString() === 'Invalid Date') {
+                    $(this).text(date);
+                } else {
                     let local_date = date_obj.toLocaleString();
                     $(this).text(local_date);
                 }

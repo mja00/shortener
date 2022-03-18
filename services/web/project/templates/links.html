@@ -83,7 +83,7 @@
                 let date = $(this).text();
                 let day = date.split(" ")[0];
                 let time = date.split(" ")[1];
-                let temp_date = day + time + "Z";
+                let temp_date = day + "T" + time + "Z";
                 // Create a new Date object and catch if it's invalid
                 let date_obj = new Date(temp_date);
                 if (date_obj.toString() === 'Invalid Date') {

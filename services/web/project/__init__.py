@@ -188,3 +188,4 @@ def redirect_to_short_url(short_url):
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
+

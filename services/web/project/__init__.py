@@ -7,11 +7,28 @@ import random
 import string
 from datetime import datetime as dt
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from logging.config import dictConfig
 
 # Our blueprints
 from .auth import auth as auth_blueprint
 # Our models
 from .models import ShortLink, db, User
+
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 

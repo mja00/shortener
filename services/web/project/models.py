@@ -1,7 +1,17 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, current_user
+import json
 
 db = SQLAlchemy()
+
+
+def load_country_names():
+    with open('project/names.json', 'r') as f:
+        return json.load(f)
+
+
+country_names = load_country_names()
+country_names["XX"] = "Unknown"
 
 
 class ShortLink(db.Model):
@@ -16,6 +26,7 @@ class ShortLink(db.Model):
     current_clicks = db.Column(db.Integer, nullable=False, default=0)
     deleted = db.Column(db.Boolean, nullable=False, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    visits = db.relationship('Visit', backref='shortlink', lazy=True)
 
     # Timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
@@ -50,3 +61,28 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+
+class Visit(db.Model):
+    __tablename__ = 'visits'
+
+    id = db.Column(db.Integer, primary_key=True)
+    short_url_id = db.Column(db.Integer, db.ForeignKey('shortlinks.id'), nullable=False)
+    ip_address = db.Column(db.String(255), nullable=False)
+    user_agent = db.Column(db.String(255), nullable=False)
+    country = db.Column(db.String(255), nullable=False)
+    country_name = db.Column(db.String(255), nullable=False, default="Unknown")
+
+    # Timestamps
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    updated_at = db.Column(db.DateTime, nullable=False, default=db.func.now(), onupdate=db.func.now())
+
+    def __init__(self, short_url_id, ip_address, user_agent, country):
+        self.short_url_id = short_url_id
+        self.ip_address = ip_address
+        self.user_agent = user_agent
+        self.country = country
+        self.country_name = country_names[country]
+
+    def __repr__(self):
+        return '<Visit %r>' % self.id

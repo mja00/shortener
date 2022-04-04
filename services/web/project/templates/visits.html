@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Visits{% endblock %}
+{% block content %}
+    <div class="container mt-2">
+        <table class="table table-striped table-hover" id="visits">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Shortlink</th>
+                <th>IP Address</th>
+                <th>User Agent</th>
+                <th>Country</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for visit in visits %}
+                <tr>
+                    <td>{{ visit.id }}</td>
+                    <td>{{ visit.shortlink.short_url }}</td>
+                    <td>{{ visit.ip_address }}</td>
+                    <td>{{ visit.user_agent }}</td>
+                    <td>{{ visit.country_name }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+{% block userscripts %}
+    <script>
+        $(document).ready(function () {
+            $('#visits').DataTable({
+                "order": [[0, "desc"]],
+                "columnDefs": [
+                    {
+                        "targets": [0],
+                        "visible": false,
+                        "searchable": false
+                    },
+                    // Force the User Agent column to be 40 characters wide
+                    {
+                        "targets": [3],
+                        "width": "40%"
+                    }
+                ]
+            });
+        });
+    </script>
+{% endblock %}

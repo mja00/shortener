@@ -12,7 +12,7 @@ from flask_migrate import Migrate
 # Our blueprints
 from .auth import auth as auth_blueprint
 # Our models
-from .models import ShortLink, db, User
+from .models import ShortLink, db, User, Visit
 
 dictConfig({
     'version': 1,
@@ -76,6 +76,29 @@ def row2dict(row):
     return d
 
 
+def log_visit(short_link):
+    short_link_id = short_link.id
+    # Get the visitor's headers
+    headers = request.headers
+    user_agent = headers.get('User-Agent')
+    # Check if the CF-Connecting-IP header is present
+    if 'CF-Connecting-IP' in headers:
+        ip_address = headers.get('CF-Connecting-IP')
+        country = headers.get('CF-IPCountry')
+    else:
+        ip_address = request.remote_addr
+        country = "XX"
+    try:
+        # Create a Visit object
+        visit = Visit(short_url_id=short_link_id, ip_address=ip_address, country=country, user_agent=user_agent)
+        # Save the Visit object
+        db.session.add(visit)
+        db.session.commit()
+    except sqlalchemy.exc.DataError:
+        # Do nothing if it errors
+        pass
+    print(row2dict(visit))
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -115,6 +138,13 @@ def create():
             return redirect(url_for('create'))
     else:
         return render_template('create.html')
+
+
+@app.route('/visits')
+@login_required
+def visits():
+    all_visits = Visit.query.all()
+    return render_template('visits.html', visits=all_visits)
 
 
 @app.route('/links')
@@ -239,16 +269,12 @@ def redirect_to_short_url(short_url):
                 return redirect(url_for('index'))
         # Get the max_clicks value for the link
         max_clicks = short_link.max_clicks
-        if max_clicks == -1:
+        if max_clicks == -1 or max_clicks > short_link.current_clicks:
             # Unlimited clicks
             # Increment the current_clicks value
             short_link.current_clicks += 1
             db.session.commit()
-            return redirect(short_link.original_url)
-        elif max_clicks > short_link.current_clicks:
-            # There are still clicks left
-            short_link.current_clicks += 1
-            db.session.commit()
+            log_visit(short_link)
             return redirect(short_link.original_url)
         else:
             # No more clicks left

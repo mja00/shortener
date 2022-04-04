@@ -97,7 +97,7 @@ def log_visit(short_link):
     except sqlalchemy.exc.DataError:
         # Do nothing if it errors
         pass
-    print(row2dict(visit))
+
 
 @app.route("/")
 def index():

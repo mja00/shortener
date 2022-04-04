@@ -173,7 +173,6 @@ def visits_data():
     length = request.args.get('length', type=int)
     query = query.offset(start).limit(length)
 
-
     # resp
     return jsonify({
         'data': [row.to_dict() for row in query.all()],

@@ -13,15 +13,6 @@
             </tr>
             </thead>
             <tbody>
-            {% for visit in visits %}
-                <tr>
-                    <td>{{ visit.id }}</td>
-                    <td>{{ visit.shortlink.short_url }}</td>
-                    <td>{{ visit.ip_address }}</td>
-                    <td>{{ visit.user_agent }}</td>
-                    <td>{{ visit.country_name }}</td>
-                </tr>
-            {% endfor %}
             </tbody>
         </table>
     </div>
@@ -31,17 +22,14 @@
         $(document).ready(function () {
             $('#visits').DataTable({
                 "order": [[0, "desc"]],
-                "columnDefs": [
-                    {
-                        "targets": [0],
-                        "visible": false,
-                        "searchable": false
-                    },
-                    // Force the User Agent column to be 40 characters wide
-                    {
-                        "targets": [3],
-                        "width": "40%"
-                    }
+                "ajax": '/visits/data',
+                "serverSide": true,
+                "columns": [
+                    {data: "id", orderable: false, searchable: false, visible: false},
+                    {data: "shortlink.short_url", orderable: false},
+                    {data: "ip_address", orderable: false},
+                    {data: "user_agent", orderable: false, width: "40%"},
+                    {data: "country_name", orderable: false}
                 ]
             });
         });

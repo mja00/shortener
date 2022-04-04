@@ -26,7 +26,7 @@ class ShortLink(db.Model):
     current_clicks = db.Column(db.Integer, nullable=False, default=0)
     deleted = db.Column(db.Boolean, nullable=False, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
-    visits = db.relationship('Visit', backref='shortlink', lazy=True)
+    visits = db.relationship('Visit', backref='shortlink', lazy=False)
 
     # Timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
@@ -41,6 +41,21 @@ class ShortLink(db.Model):
 
     def __repr__(self):
         return '<ShortLink %r>' % self.short_url
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'short_url': self.short_url,
+            'original_url': self.original_url,
+            'expired': self.expired,
+            'expiration_date': self.expiration_date,
+            'max_clicks': self.max_clicks,
+            'current_clicks': self.current_clicks,
+            'deleted': self.deleted,
+            'created_by': self.created_by,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
 
 
 class User(UserMixin, db.Model):
@@ -86,3 +101,15 @@ class Visit(db.Model):
 
     def __repr__(self):
         return '<Visit %r>' % self.id
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'shortlink': self.shortlink.to_dict(),
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'country': self.country,
+            'country_name': self.country_name,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }

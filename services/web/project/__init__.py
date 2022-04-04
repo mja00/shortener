@@ -147,6 +147,42 @@ def visits():
     return render_template('visits.html', visits=all_visits)
 
 
+@app.route('/visits/data')
+@login_required
+def visits_data():
+    query = Visit.query
+
+    # search filter
+    search = request.args.get('search[value]')
+    if search:
+        query = query.filter(db.or_(
+            Visit.ip_address.like(f'%{search}%'),
+            Visit.country_name.like(f'%{search}%'),
+            Visit.user_agent.like(f'%{search}%'),
+            # We need the shortlink alias to be searchable, Visit has a "shortlink" backref
+            Visit.shortlink.has(ShortLink.short_url.like(f'%{search}%'))
+        ))
+
+    total_filtered = query.count()
+
+    # order by id
+    query = query.order_by(Visit.id.desc())
+
+    # pagination
+    start = request.args.get('start', type=int)
+    length = request.args.get('length', type=int)
+    query = query.offset(start).limit(length)
+
+
+    # resp
+    return jsonify({
+        'data': [row.to_dict() for row in query.all()],
+        'recordsFiltered': total_filtered,
+        'recordsTotal': Visit.query.count(),
+        'draw': request.args.get('draw', type=int)
+    })
+
+
 @app.route('/links')
 @login_required
 def links():

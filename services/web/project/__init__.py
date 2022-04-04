@@ -1,19 +1,18 @@
-import sqlalchemy.exc
-from flask import Flask, jsonify, redirect, url_for, render_template, request, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 import os
 import random
 import string
 from datetime import datetime as dt
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from logging.config import dictConfig
+
+import sqlalchemy.exc
+from flask import Flask, jsonify, redirect, url_for, render_template, request, flash
+from flask_login import LoginManager, login_required
+from flask_migrate import Migrate
 
 # Our blueprints
 from .auth import auth as auth_blueprint
 # Our models
 from .models import ShortLink, db, User
-
 
 dictConfig({
     'version': 1,
@@ -155,6 +154,30 @@ def link_info(alias):
     except AttributeError:
         return_dict['created_by'] = "Unknown"
     return jsonify(return_dict)
+
+
+@app.route('/links/edit/<alias>', methods=['POST'])
+@login_required
+def link_edit(alias):
+    # Get the short link
+    short_link = ShortLink.query.filter_by(short_url=alias).first()
+    if not short_link:
+        return jsonify({'error': 'Short link not found'})
+    # Get the form data
+    form_data = request.form
+    url = form_data.get('url')
+    max_clicks = form_data.get('max_clicks', -1)
+    alias = form_data.get('alias', create_alias_till_unique(random_string(15))).replace(' ', '-')
+
+    # Update the short link
+    try:
+        short_link.original_url = url
+        short_link.max_clicks = max_clicks
+        short_link.short_url = alias
+        db.session.commit()
+        return jsonify({'success': 'Short link updated successfully', 'link_data': row2dict(short_link)})
+    except sqlalchemy.exc.DataError as e:
+        return jsonify({'error': f'Error: {e}'})
 
 
 @app.route('/links/delete/<int:link_id>', methods=['POST'])

@@ -1,7 +1,7 @@
-import sqlalchemy.exc
 from flask import Blueprint, request, render_template, flash, redirect, url_for
-from flask_login import login_required, current_user, login_user, logout_user
+from flask_login import login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
+
 from .models import User, db
 
 auth = Blueprint('auth', __name__)

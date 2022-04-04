@@ -20,7 +20,8 @@ RUN pip install -r requirements.txt
 COPY . /usr/src/app/
 
 # Make sure /usr/src/app/entrypoint.sh is executable and dos2unix
-RUN chmod +x /usr/src/app/entrypoint.sh && dos2unix /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
+RUN dos2unix /usr/src/app/entrypoint.sh
 
 # run entrypoint.sh
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

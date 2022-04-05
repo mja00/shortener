@@ -20,7 +20,7 @@
 {% block userscripts %}
     <script>
         $(document).ready(function () {
-            $('#visits').DataTable({
+            let table = $('#visits').DataTable({
                 "order": [[0, "desc"]],
                 "ajax": '/visits/data',
                 "serverSide": true,
@@ -32,6 +32,39 @@
                     {data: "country_name", orderable: false}
                 ]
             });
+
+            table.on("draw", function () {
+                // Get all the rows that have been added to the table
+                let rows = table.rows().data();
+                // Iterate over the rows
+                for (let i = 0; i < rows.length; i++) {
+                    // Get the row
+                    let row = rows[i];
+                    // IP Address changes
+                    // Get the ip_address
+                    let ip_address = row.ip_address;
+                    // Create new a element
+                    let a = document.createElement("a");
+                    // Set the href attribute
+                    a.setAttribute("href", "https://ipinfo.io/" + ip_address);
+                    // Set the text content
+                    a.innerText = ip_address;
+                    // Replace the ip_address with the a element
+                    table.cell(i, 2).node().innerHTML = a.outerHTML;
+
+                    // Shortlink changes
+                    // Get the shortlink
+                    let shortlink = row.shortlink.short_url;
+                    // Create new a element
+                    let a2 = document.createElement("a");
+                    // Set the href attribute
+                    a2.setAttribute("href", shortlink);
+                    // Set the text content
+                    a2.innerText = shortlink;
+                    // Replace the shortlink with the a element
+                    table.cell(i, 1).node().innerHTML = a2.outerHTML;
+                }
+            })
         });
     </script>
 {% endblock %}

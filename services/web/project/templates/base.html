@@ -73,7 +73,7 @@
                                 {% if current_user.is_authenticated %}
                                     <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Links</a>
-                                        <div class="dropdown-menu dropdown-menu-end">
+                                        <div class="dropdown-menu">
                                             <a class="dropdown-item" href="{{ url_for('create') }}">Create Link</a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="{{ url_for('links') }}">Active Links</a>

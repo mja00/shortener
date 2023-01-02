@@ -209,11 +209,11 @@ def links_expired():
     return render_template('links.html', short_links=short_links)
 
 
-@app.route('/links/info/<alias>')
+@app.route('/links/info/<id>')
 @login_required
-def link_info(alias):
+def link_info(id):
     # Get the short link
-    short_link = ShortLink.query.filter_by(short_url=alias).first()
+    short_link = ShortLink.query.filter_by(id=id).first()
     if not short_link:
         return jsonify({'error': 'Short link not found'})
     return_dict = row2dict(short_link)
@@ -224,11 +224,11 @@ def link_info(alias):
     return jsonify(return_dict)
 
 
-@app.route('/links/edit/<alias>', methods=['POST'])
+@app.route('/links/edit/<id>', methods=['POST'])
 @login_required
-def link_edit(alias):
+def link_edit(id):
     # Get the short link
-    short_link = ShortLink.query.filter_by(short_url=alias).first()
+    short_link = ShortLink.query.filter_by(id=id).first()
     if not short_link:
         return jsonify({'error': 'Short link not found'})
     # Get the form data
@@ -323,3 +323,16 @@ def redirect_to_short_url(short_url):
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
+
+
+@app.errorhandler(404)
+def not_found(e):
+    # We'll do some custom logic here.
+    # Get the path that was requested
+    path = request.path[1:]
+    # Check if it's a short link
+    short_link = ShortLink.query.filter_by(short_url=path).first()
+    if short_link:
+        # It's a short link, so redirect to the original URL
+        return redirect(short_link.original_url)
+    return redirect(url_for('index'))

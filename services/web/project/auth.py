@@ -48,7 +48,7 @@ def logout():
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if os.environ.get("DISABLE_REGISTRATION", "False").lower() in ["true", "1", "t"]:
-        redirect(url_for('index')) 
+        redirect(url_for('index'))
     if request.method == 'POST':
         # Get form data
         username = request.form.get('username', None)

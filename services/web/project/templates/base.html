@@ -66,20 +66,23 @@
                         <div class="collapse navbar-collapse" id="navbarColor02">
                             <ul class="navbar-nav me-auto">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="{{ url_for('index') }}">Home
+                                    <a class="nav-link active" href="{{ url_for('index') }}">
+                                        <i class="fas fa-house"></i> Home
                                         <span class="visually-hidden">(current)</span>
                                     </a>
                                 </li>
                                 {% if current_user.is_authenticated %}
                                     <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Links</a>
+                                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-link"></i> Links
+                                        </a>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="{{ url_for('create') }}">Create Link</a>
+                                            <a class="dropdown-item" href="{{ url_for('create') }}"><i class="fas fa-plus"></i> Create Link</a>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="{{ url_for('links') }}">Active Links</a>
-                                            <a class="dropdown-item" href="{{ url_for('links_expired') }}">Expired Links</a>
-                                            <a class="dropdown-item" href="{{ url_for('links_deleted') }}">Deleted Links</a>
-                                            <a class="dropdown-item" href="{{ url_for('visits') }}">Visits</a>
+                                            <a class="dropdown-item" href="{{ url_for('links') }}"><i class="fas fa-chart-line"></i> Active Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('links_expired') }}"><i class="fas fa-link-slash"></i> Expired Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('links_deleted') }}"><i class="fas fa-trash"></i> Deleted Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('visits') }}"><i class="fas fa-eye"></i> Visits</a>
                                         </div>
                                     </li>
                                 {% endif %}
@@ -94,7 +97,7 @@
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-user"></i> {{ current_user.username }}</a>
                                     <div class="dropdown-menu dropdown-menu-end">
-                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a>
+                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-door-open"></i> Logout</a>
                                     </div>
                                 </li>
                                 {% endif %}

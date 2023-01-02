@@ -32,12 +32,6 @@
                     <td>
                         <!-- POST delete button -->
                         <div class="btn-group" role="group">
-                            {% if not link.deleted %}
-                                <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
-                                    <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit"
-                                            class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
-                                </form>
-                            {% endif %}
                             {% if link.deleted %}
                                 <form action="{{ url_for("restore_link", link_id=link.id) }}" method="post">
                                     <button data-toggle="tooltip" data-placement="top" title="Restore" type="submit"
@@ -48,6 +42,11 @@
                                             type="submit"
                                             class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
                                     </button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
+                                    <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit"
+                                            class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
                                 </form>
                             {% endif %}
                             <button onclick="showInfo('{{ link.id }}')" class="btn btn-primary btn-sm"

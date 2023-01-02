@@ -54,6 +54,13 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+@app.context_processor
+def inject_vars():
+    return dict(
+        theme=os.environ.get('THEME', "darkly")
+    )
+
+
 def random_string(length):
     return ''.join(random.choice(random_letters) for i in range(length))
 

@@ -6,7 +6,7 @@ from logging.config import dictConfig
 
 import sqlalchemy.exc
 from flask import Flask, jsonify, redirect, url_for, render_template, request, flash
-from flask_login import LoginManager, login_required
+from flask_login import LoginManager, login_required, current_user
 from flask_migrate import Migrate
 
 # Our blueprints
@@ -101,6 +101,9 @@ def log_visit(short_link):
 
 @app.route("/")
 def index():
+    root_redirect = os.environ.get('ROOT_REDIRECT', None)
+    if root_redirect and not current_user.is_authenticated:
+        return redirect(root_redirect)
     return render_template("index.html")
 
 

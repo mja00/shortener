@@ -70,6 +70,19 @@
                                         <span class="visually-hidden">(current)</span>
                                     </a>
                                 </li>
+                                {% if current_user.is_authenticated %}
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Links</a>
+                                        <div class="dropdown-menu dropdown-menu-end">
+                                            <a class="dropdown-item" href="{{ url_for('create') }}">Create Link</a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="{{ url_for('links') }}">Active Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('links_expired') }}">Expired Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('links_deleted') }}">Deleted Links</a>
+                                            <a class="dropdown-item" href="{{ url_for('visits') }}">Visits</a>
+                                        </div>
+                                    </li>
+                                {% endif %}
 
                             </ul>
                             <ul class="navbar-nav">
@@ -81,13 +94,6 @@
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-user"></i> {{ current_user.username }}</a>
                                     <div class="dropdown-menu dropdown-menu-end">
-                                        <a class="dropdown-item" href="{{ url_for('create') }}">Create Link</a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="{{ url_for('links') }}">Active Links</a>
-                                        <a class="dropdown-item" href="{{ url_for('links_expired') }}">Expired Links</a>
-                                        <a class="dropdown-item" href="{{ url_for('links_deleted') }}">Deleted Links</a>
-                                        <a class="dropdown-item" href="{{ url_for('visits') }}">Visits</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a>
                                     </div>
                                 </li>

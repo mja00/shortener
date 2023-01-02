@@ -334,5 +334,5 @@ def not_found(e):
     short_link = ShortLink.query.filter_by(short_url=path).first()
     if short_link:
         # It's a short link, so redirect to the original URL
-        return redirect(short_link.original_url)
+        return redirect_to_short_url(path)
     return redirect(url_for('index'))

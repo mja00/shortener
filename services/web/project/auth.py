@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, render_template, flash, redirect, url_for
 from flask_login import login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -46,6 +47,8 @@ def logout():
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
+    if os.environ.get("DISABLE_REGISTRATION", "False").lower() in ["true", "1", "t"]:
+        redirect(url_for('index')) 
     if request.method == 'POST':
         # Get form data
         username = request.form.get('username', None)

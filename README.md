@@ -1,6 +1,6 @@
 # shortener
-![Docker Pulls](https://img.shields.io/docker/pulls/mja00/shortener)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mja00/shortener/docker-image.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/mja00/shortener)](https://hub.docker.com/r/mja00/shortener)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/mja00/shortener/docker-image.yml)](https://github.com/mja00/shortener/actions/workflows/docker-image.yml)
 
 Python based URL shortener using Flask, written in an afternoon.
 

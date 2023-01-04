@@ -1,16 +1,7 @@
 #!/bin/sh
 
-if [ "$DATABASE" = "postgres"]
-then
-    echo "Waiting for postgres..."
-
-    while ! nc -z $SQL_HOST $SQL_PORT; do
-      sleep 0.1
-    done
-
-    echo "PostgreSQL started"
-fi
+export FLASK_APP=project/__init__.py
 
 #python manage.py create_db
 
-exec "$@"
+exec "${@:-python manage.py run -h 0.0.0.0}"

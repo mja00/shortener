@@ -33,27 +33,24 @@
                         <!-- POST delete button -->
                         <div class="btn-group" role="group">
                             {% if link.deleted %}
-                                <form action="{{ url_for("restore_link", link_id=link.id) }}" method="post">
-                                    <button data-toggle="tooltip" data-placement="top" title="Restore" type="submit"
-                                            class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
-                                </form>
-                                <form action="{{ url_for("hard_delete_link", link_id=link.id) }}" method="post">
-                                    <button data-toggle="tooltip" data-placement="top" title="Hard Delete"
-                                            type="submit"
-                                            class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
+                                <button data-bs-toggle="tooltip" data-bs-placement="top" title="Restore" onclick="document.forms.restore_{{ link.id }}.submit()"
+                                        class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
+                                <form id="restore_{{ link.id }}" action="{{ url_for("restore_link", link_id=link.id) }}" method="post"></form>
+                                <button data-bs-toggle="tooltip" data-bs-placement="top" title="Hard Delete"
+                                        onclick="document.forms.hard_delete_{{ link.id }}.submit()"
+                                        class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
+                                </button>
+                                <form id="hard_delete_{{ link.id }}" action="{{ url_for("hard_delete_link", link_id=link.id) }}" method="post"></form>
                             {% else %}
-                                <form action="{{ url_for("delete_link", link_id=link.id) }}" method="post">
-                                    <button data-toggle="tooltip" data-placement="top" title="Soft Delete" type="submit"
+                                    <button data-bs-toggle="tooltip" data-bs-placement="top" title="Soft Delete" onclick="document.forms.delete_{{ link.id }}.submit()"
                                             class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
-                                </form>
+                                    <form id="delete_{{ link.id }}" action="{{ url_for("delete_link", link_id=link.id) }}" method="post"></form>
                             {% endif %}
                             <button onclick="showInfo('{{ link.id }}')" class="btn btn-primary btn-sm"
-                                    data-toggle="tooltip" data-placement="top" title="Info"><i
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Info"><i
                                     class="fa-solid fa-eye"></i></button>
                             <button onclick="editLink('{{ link.id }}')" class="btn btn-info btn-sm"
-                                    data-toggle="tooltip" data-placement="top" title="Edit"><i
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i
                                     class="fa-solid fa-edit"></i></button>
                         </div>
                     </td>
@@ -66,7 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modal-title">Info for </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -84,7 +81,7 @@
                         </ul>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -95,7 +92,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="edit-modal-title">Editing </h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -139,7 +136,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
                         <!-- Submit button for form -->
                         <button type="submit" class="btn btn-success" form="edit-form">Save</button>
                     </div>
@@ -150,7 +147,6 @@
 {% endblock %}
 {% block userscripts %}
     <script>
-
         function showInfo(link_id) {
             // GET request to /links/info/<alias>
             $.ajax(

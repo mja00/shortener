@@ -26,6 +26,6 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: ./services/web/
-        file: Dockerfile.prod
+        file: ./services/web/Dockerfile.prod
         push: true
         tags: ${{ github.repository }}:latest

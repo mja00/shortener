@@ -22,6 +22,10 @@ def login():
 
         # Check if user exists
         user = User.query.filter_by(username=username).first()
+        
+        if not user:
+            flash('Incorrect details.', "danger")
+            return redirect(url_for('auth.login'))
 
         # Check password
         if not check_password_hash(user.password, password) or not user:

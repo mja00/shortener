@@ -23,5 +23,7 @@ COPY . /usr/src/app/
 RUN chmod +x /usr/src/app/entrypoint.sh
 RUN dos2unix /usr/src/app/entrypoint.sh
 
+ENV FLASK_APP=project/__init__.py
+
 # run entrypoint.sh
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

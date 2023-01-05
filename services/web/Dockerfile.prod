@@ -65,5 +65,7 @@ RUN chown -R app:app $APP_HOME
 # Change user
 USER app
 
+ENV FLASK_APP=project/__init__.py
+
 # Entrypoint
 ENTRYPOINT ["/home/app/web/entrypoint.prod.sh"]

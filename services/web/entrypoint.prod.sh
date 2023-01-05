@@ -1,7 +1,5 @@
 #!/bin/sh
 
-export FLASK_APP=project/__init__.py
-
 if [ ! -z "$@" ]; then
   exec "$@"
 else

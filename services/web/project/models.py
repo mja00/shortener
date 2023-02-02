@@ -32,12 +32,15 @@ class ShortLink(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     updated_at = db.Column(db.DateTime, nullable=False, default=db.func.now(), onupdate=db.func.now())
 
-    def __init__(self, original_url, short_url, max_clicks=-1, expiration_date=None):
+    def __init__(self, original_url, short_url, max_clicks=-1, expiration_date=None, created_by=None):
         self.original_url = original_url
         self.short_url = short_url
         self.max_clicks = max_clicks
         self.expiration_date = expiration_date
-        self.created_by = current_user.id
+        if created_by:
+            self.created_by = created_by
+        else:
+            self.created_by = current_user.id
 
     def __repr__(self):
         return '<ShortLink %r>' % self.short_url

@@ -25,13 +25,16 @@ Clone the repo and cd in. Then you want to run `docker-compose up -d --build` th
 run `docker-compose exec web flask db upgrade` to setup the development DB. Enjoy!
 
 # Environment variables
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | None | The database connection string. See `SQLALCHEMY_DATABASE_URI` @ https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/ |
-| `DISABLE_REGISTRATION` | `False` | Disables the registration on the site |
+| Variable | Default    | Description |
+| --- |------------| --- |
+| `DATABASE_URL` | None       | The database connection string. See `SQLALCHEMY_DATABASE_URI` @ https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/ |
+| `DISABLE_REGISTRATION` | `False`    | Disables the registration on the site |
 | `SECRET_KEY` | `CHANGEME` | A secret key that will be used for securely signing the session cookie and can be used for any other security related needs |
-| `ROOT_REDIRECT` | None | A page to re-direct the root url to. |
-| `THEME` | `darkly` | A [Bootswatch](https://bootswatch.com/) theme name |
+| `ROOT_REDIRECT` | None       | A page to re-direct the root url to. |
+| `THEME` | `darkly`   | A [Bootswatch](https://bootswatch.com/) theme name |
+| `API_KEY` | `CHANGEME` | The API key to use for the API. |
+| `ENABLE_API` | `True`     | Enables the API. |
+| `API_USER_ID` | None       | The user ID to use for the API. |
 
 # Contributing
 Feel free to make PRs or open issues. I don't know how much I'll be adding things, kinda wrote this for myself and felt like opening it up. 

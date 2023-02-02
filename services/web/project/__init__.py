@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 
 # Our blueprints
 from .auth import auth as auth_blueprint
+from .api import api as api_blueprint
 # Our models
 from .models import ShortLink, db, User, Visit
 
@@ -47,6 +48,8 @@ migrate = Migrate(app, db)
 random_letters = string.ascii_letters + string.digits
 
 app.register_blueprint(auth_blueprint)
+if os.environ.get("ENABLE_API", "False").lower() in ["true", "1", "t"]:
+    app.register_blueprint(api_blueprint, url_prefix='/api')
 
 
 @login_manager.user_loader

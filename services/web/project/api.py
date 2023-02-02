@@ -159,6 +159,21 @@ def delete_link(link_id):
     return jsonify({'link': link.to_dict()}), 200
 
 
+@api.route('/links/<int:link_id>/restore', methods=['PUT'])
+def restore_link(link_id):
+    # Get the link
+    link = ShortLink.query.filter_by(id=link_id).first()
+    if not link:
+        return jsonify({'error': 'Link not found'}), 404
+
+    # Restore the link
+    link.deleted = False
+    link.expired = False
+    db.session.commit()
+
+    return jsonify({'link': link.to_dict()}), 200
+
+
 @api.route('/links/<int:link_id>/hard', methods=['DELETE'])
 def hard_delete_link(link_id):
     # Get the link

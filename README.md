@@ -25,13 +25,63 @@ Clone the repo and cd in. Then you want to run `docker-compose up -d --build` th
 run `docker-compose exec web flask db upgrade` to setup the development DB. Enjoy!
 
 # Environment variables
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | None | The database connection string. See `SQLALCHEMY_DATABASE_URI` @ https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/ |
-| `DISABLE_REGISTRATION` | `False` | Disables the registration on the site |
+| Variable | Default    | Description |
+| --- |------------| --- |
+| `DATABASE_URL` | None       | The database connection string. See `SQLALCHEMY_DATABASE_URI` @ https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/ |
+| `DISABLE_REGISTRATION` | `False`    | Disables the registration on the site |
 | `SECRET_KEY` | `CHANGEME` | A secret key that will be used for securely signing the session cookie and can be used for any other security related needs |
-| `ROOT_REDIRECT` | None | A page to re-direct the root url to. |
-| `THEME` | `darkly` | A [Bootswatch](https://bootswatch.com/) theme name |
+| `ROOT_REDIRECT` | None       | A page to re-direct the root url to. |
+| `THEME` | `darkly`   | A [Bootswatch](https://bootswatch.com/) theme name |
+| `API_KEY` | `CHANGEME` | The API key to use for the API. |
+| `ENABLE_API` | `True`     | Enables the API. |
+| `API_USER_ID` | None       | The user ID to use for the API. |
+
+# API
+
+The API is currently very basic. The routes are listed below along with their parameters and responses.
+
+### `GET /api/links/active`
+Returns a list of all active links.
+
+### `GET /api/links/expired`
+Returns a list of all expired links.
+
+### `GET /api/links/deleted`
+Returns a list of all deleted links.
+
+### `GET /api/links/<link_id>`
+Returns the link with the given ID.
+
+### `POST /api/links`
+Creates a new link. Use the following json body:
+```json
+{
+    "url": "https://google.com/api",
+    "alias": "api-test-expire-date",
+    "max_click_count": 5, // Optional
+    "expiration_date": 1675399834 // Optional
+}
+```
+
+### `PUT /api/links/<link_id>`
+Updates the link with the given ID. Use the following json body:
+```json
+{
+    "url": "https://google.com/api",
+    "alias": "api-test-expire-date",
+    "max_click_count": 5, // Optional
+    "expiration_date": 1675399834 // Optional
+}
+```
+
+### `DELETE /api/links/<link_id>`
+Deletes the link with the given ID.
+
+### `PUT /api/links/<link_id>/restore`
+Restores the link with the given ID.
+
+### `DELETE /api/links/<link_id>/hard`
+Hard deletes the link with the given ID.
 
 # Contributing
 Feel free to make PRs or open issues. I don't know how much I'll be adding things, kinda wrote this for myself and felt like opening it up. 

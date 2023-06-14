@@ -301,6 +301,9 @@ def restore_link(link_id):
 
 @app.route("/<short_url>")
 def redirect_to_short_url(short_url):
+    # Check for trailing slash
+    if short_url.endswith('/'):
+        short_url = short_url[:-1]
     short_link = ShortLink.query.filter_by(short_url=short_url).first()
     if short_link:
         # Check if the link is already expired
@@ -340,6 +343,9 @@ def not_found(e):
     # We'll do some custom logic here.
     # Get the path that was requested
     path = request.path[1:]
+    # Remove any trailing slash
+    if path.endswith('/'):
+        path = path[:-1]
     # Check if it's a short link
     short_link = ShortLink.query.filter_by(short_url=path).first()
     if short_link:

@@ -10,6 +10,7 @@
                 <th>IP Address</th>
                 <th>User Agent</th>
                 <th>Country</th>
+                <th>Time (local)</th>
             </tr>
             </thead>
             <tbody>
@@ -29,7 +30,11 @@
                     {data: "shortlink.short_url", orderable: false},
                     {data: "ip_address", orderable: false},
                     {data: "user_agent", orderable: false, width: "40%"},
-                    {data: "country_name", orderable: false}
+                    {data: "country_name", orderable: false},
+                    {data: "created_at", orderable: false, render: function (data, type, row, meta) {
+                            return moment(data).local().format('MM/DD/YYYY hh:mm:ss A');
+                        }
+                    }
                 ]
             });
 

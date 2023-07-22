@@ -63,9 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modal-title">Info for </h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <ul class="list-unstyled">
@@ -92,9 +90,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="edit-modal-title">Editing </h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <form method="POST" action="#" id="edit-form">
@@ -130,6 +126,24 @@
                                                placeholder="-1" name="max_clicks" value="-1">
                                         <small class="text-muted">Setting this value to -1 will disable the
                                             maximum</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <!-- Expiration date -->
+                                    <div class="col">
+                                        <!-- Expiration date -->
+                                        <div class="form-group">
+                                            <label for="expiration_date_shown">Expiration Date</label>
+                                            <input type="datetime-local" class="form-control" id="expiration_date_shown" name="expiration_date_shown">
+                                            <small class="text-muted">Setting this value to empty will disable the expiration</small>
+                                        </div>
+                                    </div>
+                                    <div class="col" hidden>
+                                        <!-- Expiration date -->
+                                        <div class="form-group">
+                                            <label for="expiration_date">Expiration Date</label>
+                                            <input type="number" class="form-control" id="expiration_date" name="expiration_date">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -197,8 +211,25 @@
                         $('#edit-form').attr('action', '/links/edit/' + linkAlias);
                         $('#edit-form input[name="url"]').val(data.original_url);
                         $('#edit-form input[name="alias"]').val(data.short_url);
-                        $('#edit-form input[name="old-alias"]').val(data.short_url);
+                        $('#edit-form input[name="old-alias"]').val(data.id);
                         $('#edit-form input[name="max_clicks"]').val(data.max_clicks);
+                        // We want to convert the expiration_date to a local time and update the form
+                        // Date comes in at 22 Nov 2023 00:00:00 GMT
+                        let date = data.expiration_date;
+                        if (date) {
+                            // Create a new Date object and catch if it's invalid
+                            let date_obj = new Date(date);
+                            if (date_obj.toString() === 'Invalid Date') {
+                                console.log('Invalid date')
+                                $('#edit-form input[name="expiration_date_shown"]').val('');
+                                $('#edit-form input[name="expiration_date"]').val('');
+                            } else {
+                                // Create a local date object
+                                date_obj.setMinutes(date_obj.getMinutes() - date_obj.getTimezoneOffset());
+                                $('#edit-form input[name="expiration_date_shown"]').val(date_obj.toISOString().slice(0, 16));
+                                $('#edit-form input[name="expiration_date"]').val(date_obj.getTime());
+                            }
+                        }
                         $('#edit-modal-title').html('Editing ' + data.short_url);
                         // Show the modal
                         $('#edit-modal').modal('show');
@@ -210,6 +241,13 @@
         // Add our event listener to the submit button
         $('#edit-form').submit(function (e) {
             e.preventDefault();
+            let expiration_date = $('#expiration_date_shown').val();
+            // Convert datetime-local to datetime as UTC
+            if (expiration_date) {
+                expiration_date = new Date(expiration_date).valueOf();
+            }
+            // Add the expiration_date to the form
+            $('#expiration_date').val(expiration_date);
             // POST request to /links/edit/<alias>
             console.log(`Updating link ${$('#edit-form input[name="old-alias"]').val()}`);
             $.ajax(

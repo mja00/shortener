@@ -246,12 +246,18 @@ def link_edit(id):
     url = form_data.get('url')
     max_clicks = form_data.get('max_clicks', -1)
     alias = form_data.get('alias', create_alias_till_unique(random_string(15))).replace(' ', '-')
+    expiration_date = form_data.get('expiration_date', None)
+    if expiration_date == "":
+        expiration_date = None
+    if expiration_date:
+        expiration_date = dt.fromtimestamp(int(expiration_date) / 1000)
 
     # Update the short link
     try:
         short_link.original_url = url
         short_link.max_clicks = max_clicks
         short_link.short_url = alias
+        short_link.expiration_date = expiration_date
         db.session.commit()
         return jsonify({'success': 'Short link updated successfully', 'link_data': row2dict(short_link)})
     except sqlalchemy.exc.DataError as e:

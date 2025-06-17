@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.10.3-slim-buster
+FROM python:3.13-slim-bookworm
 
 # set work directory
 WORKDIR /usr/src/app
@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install system depenedencies
-RUN apt update && apt install -y netcat dos2unix
+RUN apt update && apt install -y netcat-traditional dos2unix
 
 # install dependencies
 RUN pip install --upgrade pip

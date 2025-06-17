@@ -2,8 +2,8 @@
 # BUILDER #
 ###########
 
-# Python 3.10 slim buster
-FROM python:3.10-slim-buster as builder
+# Python 3.13 slim bookworm
+FROM python:3.13-slim-bookworm as builder
 
 # Work dir
 WORKDIR /usr/src/app
@@ -30,7 +30,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requir
 # FINAL #
 #########
 
-FROM python:3.10-slim-buster
+FROM python:3.13-slim-bookworm
 
 # App user home dir
 RUN mkdir -p /home/app
@@ -45,16 +45,11 @@ RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 
 # Install deps
-RUN apt update && apt install -y --no-install-recommends netcat dos2unix
+RUN apt update && apt install -y --no-install-recommends netcat-traditional dos2unix
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
-
-# Copy entrypoint
-COPY ./entrypoint.prod.sh $APP_HOME
-# Make sure it's executable and dos2unix it
-RUN chmod +x $APP_HOME/entrypoint.prod.sh && dos2unix $APP_HOME/entrypoint.prod.sh
 
 # Copy project
 COPY . $APP_HOME
@@ -66,6 +61,3 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 ENV FLASK_APP=project/__init__.py
-
-# Entrypoint
-ENTRYPOINT ["/home/app/web/entrypoint.prod.sh"]

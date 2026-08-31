@@ -1,7 +1,10 @@
 name = "shortener"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
-
+routes = [
+  { pattern = "mart.fyi/*", zone_name = "mart.fyi" },
+  { pattern = "www.mart.fyi/*", zone_name = "mart.fyi" },
+]
 [vars]
 API_USER_ID = "1"
 DISABLE_REGISTRATION = "false"

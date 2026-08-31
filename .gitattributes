@@ -1,5 +1,0 @@
-# Makes Dockerfile.prod syntax highlighted  
-services/web/Dockerfile.prod linguist-language=Dockerfile
-
-# Env file highlighting
-.env.* linguist-language=Shell

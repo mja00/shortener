@@ -1,8 +1,12 @@
+# Build artifacts
+worker/node_modules/
+worker/.wrangler/
+
+# Local secrets
+worker/.dev.vars
 .env.prod
 .env.prod.db
 
 *.pyc
-
-services/web/project/venv
 
 .idea/

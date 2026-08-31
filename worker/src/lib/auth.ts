@@ -61,17 +61,49 @@ async function verifyPbkdf2(password: string, hash: string): Promise<boolean> {
   return derived !== null && safeEqual(derived, expected);
 }
 
+// The Workers runtime caps crypto.subtle PBKDF2 at 100k iterations, so
+// Werkzeug's 260k-iteration hashes must be derived manually: PBKDF2 is the
+// XOR chain of HMAC(password, U_{i-1}). HMAC via WebCrypto has no cap.
+// Slow (~seconds of CPU) but runs at most once per legacy user — the hash
+// upgrades to bcrypt after a successful login.
 async function pbkdf2Derive(
   password: string, salt: string, iterations: number, lengthBytes: number, method: string
 ): Promise<string | null> {
   const algo = method === "sha512" ? "SHA-512" : method === "sha1" ? "SHA-1" : "SHA-256";
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: algo, salt: new TextEncoder().encode(salt), iterations },
-    key,
-    lengthBytes * 8
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(password), { name: "HMAC", hash: algo }, false, ["sign"]
   );
-  return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const enc = new TextEncoder();
+  const dkLen = lengthBytes;
+  const blocks = Math.ceil(dkLen / (algo === "SHA-512" ? 64 : 32));
+  const out = new Uint8Array(dkLen);
+  const saltBytes = enc.encode(salt);
+
+  for (let block = 1; block <= blocks; block++) {
+    const blockBytes = new Uint8Array(4);
+    new DataView(blockBytes.buffer).setUint32(0, block);
+    // U1 = HMAC(P, salt || INT(block))
+    const mac = await crypto.subtle.sign(
+      "HMAC", key,
+      concatBytes(saltBytes, blockBytes)
+    );
+    let u = new Uint8Array(mac);
+    const xorAcc = new Uint8Array(u);
+    for (let i = 1; i < iterations; i++) {
+      const ui = new Uint8Array(await crypto.subtle.sign("HMAC", key, u));
+      for (let j = 0; j < ui.length; j++) xorAcc[j] = (xorAcc[j] ?? 0) ^ ui[j]!;
+      u = ui;
+    }
+    out.set(xorAcc.subarray(0, Math.min(xorAcc.length, dkLen - (block - 1) * (algo === "SHA-512" ? 64 : 32))), (block - 1) * (algo === "SHA-512" ? 64 : 32));
+  }
+  return [...out].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function concatBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
+  const out = new Uint8Array(a.length + b.length);
+  out.set(a);
+  out.set(b, a.length);
+  return out;
 }
 
 function keyBytes(secret: string): Uint8Array {

@@ -287,7 +287,7 @@ web.get("/visits/data", requireSession, async (c) => {
   const total = await first<{ n: number }>(c.env.DB, "SELECT COUNT(*) AS n FROM visits");
 
   const pageClause = length === -1 ? "" : " LIMIT ? OFFSET ?";
-  const pageParams = length === -1 ? [] : [start, length];
+  const pageParams = length === -1 ? [] : [length, start];
   const rows = await all<VisitRow>(
     c.env.DB,
     `SELECT v.*, s.short_url AS _short_url FROM visits v LEFT JOIN shortlinks s ON s.id = v.short_url_id ${filterClause} ORDER BY v.id DESC${pageClause}`,

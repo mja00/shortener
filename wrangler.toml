@@ -25,10 +25,10 @@ zone_name = "mart.fyi"
 
 [vars]
 API_USER_ID = "1"
-DISABLE_REGISTRATION = "false"
-ROOT_REDIRECT = ""
+DISABLE_REGISTRATION = "true"
+ROOT_REDIRECT = "https://x.com/itsmja00"
 NOT_FOUND_BEHAVIOR = "redirect"
-THEME = "darkly"
+THEME = "slate"
 
 [[d1_databases]]
 binding = "DB"

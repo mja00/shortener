@@ -1,8 +1,8 @@
-import { baseLayout } from "./base";
+import { baseLayout } from './base';
 
 // Port of templates/register.html.
-export function registerPage(opts: { theme: string; msg?: string; msg_type?: string }): string {
-  const content = `<div class="container col-4 mt-2 mb-2">
+export function registerPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+	const content = `<div class="container col-4 mt-2 mb-2">
   <div class="card">
     <div class="card-header">
       <h3>Register</h3>
@@ -26,5 +26,5 @@ export function registerPage(opts: { theme: string; msg?: string; msg_type?: str
     </div>
   </div>
 </div>`;
-  return baseLayout({ ...opts, title: "Register", content });
+	return baseLayout({ ...opts, title: 'Register', content });
 }

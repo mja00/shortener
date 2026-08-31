@@ -1,4 +1,4 @@
-import { baseLayout } from "./base";
+import { baseLayout } from './base';
 
 // Port of templates/visits.html. Rows come from /visits/data (server-side
 // DataTables), so the tbody stays empty exactly like the original.
@@ -57,8 +57,8 @@ const USERSCRIPTS = `<script>
 </script>`;
 
 // Port of templates/visits.html.
-export function visitsPage(opts: { theme: string; user: { username: string }; msg?: string; msg_type?: string }): string {
-  const content = `<div class="container mt-2">
+export function visitsPage(opts: { theme: string; user: { username: string; }; msg?: string; msg_type?: string; }): string {
+	const content = `<div class="container mt-2">
   <table class="table table-striped table-hover" id="visits">
     <thead>
     <tr>
@@ -74,5 +74,5 @@ export function visitsPage(opts: { theme: string; user: { username: string }; ms
     </tbody>
   </table>
 </div>`;
-  return baseLayout({ ...opts, title: "Visits", content, userscripts: USERSCRIPTS });
+	return baseLayout({ ...opts, title: 'Visits', content, userscripts: USERSCRIPTS });
 }

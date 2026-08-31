@@ -1,22 +1,21 @@
-
 export function esc(value: unknown): string {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+	return String(value)
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll('\'', '&#39;');
 }
 
 export interface BaseOptions {
-  title?: string;
-  theme: string;
-  user?: { username: string } | null;
-  msg?: string;
-  msg_type?: string;
-  content: string;
-  userstyles?: string;
-  userscripts?: string;
+	title?: string;
+	theme: string;
+	user?: { username: string; } | null;
+	msg?: string;
+	msg_type?: string;
+	content: string;
+	userstyles?: string;
+	userscripts?: string;
 }
 
 const CDN_STYLE_LINKS = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -26,17 +25,17 @@ const CDN_STYLE_LINKS = `<link rel="stylesheet" href="https://cdnjs.cloudflare.c
       href="https://cdn.datatables.net/v/bs5/dt-1.13.1/b-2.3.3/r-2.4.0/datatables.min.css"/>`;
 
 export function baseLayout(opts: BaseOptions): string {
-  const { title, theme, user, msg, msg_type, content, userstyles, userscripts } = opts;
-  const alertType = msg_type === "success" ? "success" : msg_type === "warning" ? "warning" : "danger";
-  const flashBlock = msg
-    ? `<div class="container mt-4">
+	const { title, theme, user, msg, msg_type, content, userstyles, userscripts } = opts;
+	const alertType = msg_type === 'success' ? 'success' : (msg_type === 'warning' ? 'warning' : 'danger');
+	const flashBlock = msg
+		? `<div class="container mt-4">
     <div id="flash" class="alert alert-${alertType} alert-dismissible fade show text-center" role="alert">
         ${esc(msg)}
     </div>
   </div>`
-    : "";
-  const navLinks = user
-    ? `<li class="nav-item dropdown">
+		: '';
+	const navLinks = user
+		? `<li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
           <i class="fas fa-link"></i> Links
       </a>
@@ -49,19 +48,19 @@ export function baseLayout(opts: BaseOptions): string {
           <a class="dropdown-item" href="/visits"><i class="fas fa-eye"></i> Visits</a>
       </div>
   </li>`
-    : "";
-  const navUser = user
-    ? `<li class="nav-item dropdown">
+		: '';
+	const navUser = user
+		? `<li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-user"></i> ${esc(user.username)}</a>
       <div class="dropdown-menu dropdown-menu-end">
           <a class="dropdown-item" href="/logout"><i class="fas fa-door-open"></i> Logout</a>
       </div>
   </li>`
-    : `<li class="nav-item">
+		: `<li class="nav-item">
       <a class="nav-link" href="/login">Login</a>
   </li>`;
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -79,10 +78,10 @@ export function baseLayout(opts: BaseOptions): string {
     <meta property="twitter:url" content="https://short.theairplan.com/">
     <meta property="twitter:title" content="URL Shortener">
     <meta property="twitter:description" content="URL Shortener built on Python">
-    <title>${esc(title ?? "")} | Shortener</title>
+    <title>${esc(title ?? '')} | Shortener</title>
     <link rel="stylesheet" href="https://bootswatch.com/5/${esc(theme)}/bootstrap.min.css" id="bootstrap-style">
     ${CDN_STYLE_LINKS}
-    ${userstyles ?? ""}
+    ${userstyles ?? ''}
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -100,6 +99,9 @@ export function baseLayout(opts: BaseOptions): string {
               </a>
             </li>
             ${navLinks}
+          </ul>
+          <ul class="navbar-nav">
+            ${navUser}
           </ul>
         </div>
       </div>
@@ -131,7 +133,7 @@ export function baseLayout(opts: BaseOptions): string {
         })
       })
     </script>
-    ${userscripts ?? ""}
+    ${userscripts ?? ''}
   </body>
 </html>`;
 }

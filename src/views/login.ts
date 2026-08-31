@@ -1,8 +1,8 @@
-import { baseLayout } from "./base";
+import { baseLayout } from './base';
 
 // Port of templates/login.html.
-export function loginPage(opts: { theme: string; msg?: string; msg_type?: string }): string {
-  const content = `<div class="container col-md-6 mt-2 mb-2">
+export function loginPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+	const content = `<div class="container col-md-6 mt-2 mb-2">
   <div class="card">
     <div class="card-header">
       <h3>Login</h3>
@@ -22,5 +22,5 @@ export function loginPage(opts: { theme: string; msg?: string; msg_type?: string
     </div>
   </div>
 </div>`;
-  return baseLayout({ ...opts, title: "Login", content });
+	return baseLayout({ ...opts, title: 'Login', content });
 }

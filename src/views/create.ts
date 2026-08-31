@@ -1,4 +1,4 @@
-import { baseLayout } from "./base";
+import { baseLayout } from './base';
 
 // Port of templates/create.html, userscripts included verbatim (the hidden
 // form carries expiration_date as a ms epoch string, matching the server-side
@@ -52,8 +52,8 @@ const USERSCRIPTS = `<script>
 </script>`;
 
 // Port of templates/create.html.
-export function createPage(opts: { theme: string; msg?: string; msg_type?: string }): string {
-  const content = `<div class="container mt-2">
+export function createPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+	const content = `<div class="container mt-2">
   <div class="card">
     <div class="card-header">
       Create new short URL
@@ -107,5 +107,5 @@ export function createPage(opts: { theme: string; msg?: string; msg_type?: strin
     </div>
   </div>
 </div>`;
-  return baseLayout({ ...opts, title: "Create", content, userscripts: USERSCRIPTS });
+	return baseLayout({ ...opts, title: 'Create', content, userscripts: USERSCRIPTS });
 }

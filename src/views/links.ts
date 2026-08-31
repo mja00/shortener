@@ -1,6 +1,7 @@
-import { esc } from "./base";
-import { baseLayout } from "./base";
-import type { Link } from "../types";
+import { esc } from './base';
+import { baseLayout } from './base';
+
+import type { Link } from '../types';
 
 // Port of templates/links.html. Flask rendered link fields straight into the
 // row markup; every interpolation here goes through esc() instead. Booleans
@@ -168,10 +169,10 @@ const USERSCRIPTS = `<script>
 </script>`;
 
 function linkRow(link: Link): string {
-  const clicks =
-    link.max_clicks === -1 ? `${link.current_clicks}` : `${link.current_clicks} / ${link.max_clicks}`;
-  const actions = link.deleted
-    ? `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Restore" onclick="document.forms.restore_${link.id}.submit()"
+	const clicks =
+		link.max_clicks === -1 ? `${link.current_clicks}` : `${link.current_clicks} / ${link.max_clicks}`;
+	const actions = link.deleted
+		? `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Restore" onclick="document.forms.restore_${link.id}.submit()"
         class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
   <form id="restore_${link.id}" action="/links/restore/${link.id}" method="post"></form>
   <button data-bs-toggle="tooltip" data-bs-placement="top" title="Hard Delete"
@@ -179,17 +180,17 @@ function linkRow(link: Link): string {
       class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
   </button>
   <form id="hard_delete_${link.id}" action="/links/hard_delete/${link.id}" method="post"></form>`
-    : `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Soft Delete" onclick="document.forms.delete_${link.id}.submit()"
+		: `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Soft Delete" onclick="document.forms.delete_${link.id}.submit()"
         class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
   <form id="delete_${link.id}" action="/links/delete/${link.id}" method="post"></form>`;
-  return `<tr>
+	return `<tr>
     <th scope="row">${link.id}</th>
     <td>
       <a href="/${esc(link.short_url)}">${esc(link.short_url)}</a>
     </td>
     <td>${esc(link.original_url)}</td>
     <td>${clicks}</td>
-    <td id="expiration-date-${link.id}">${esc(link.expiration_date ?? "")}</td>
+    <td id="expiration-date-${link.id}">${esc(link.expiration_date ?? '')}</td>
     <td id="creation-date-${link.id}">${esc(link.created_at)}</td>
     <td>
       <!-- POST delete button -->
@@ -208,9 +209,9 @@ function linkRow(link: Link): string {
 
 // Port of templates/links.html; rows are rendered server-side exactly as the
 // Jinja loop did.
-export function linksPage(opts: { theme: string; user: { username: string }; links: Link[]; msg?: string; msg_type?: string }): string {
-  const rows = opts.links.map(linkRow).join("\n");
-  const content = `<div class="container mt-2">
+export function linksPage(opts: { theme: string; user: { username: string; }; links: Link[]; msg?: string; msg_type?: string; }): string {
+	const rows = opts.links.map(link => linkRow(link)).join('\n');
+	const content = `<div class="container mt-2">
   <table class="table table-striped table-hover" id="links">
     <thead>
     <tr>
@@ -328,5 +329,5 @@ export function linksPage(opts: { theme: string; user: { username: string }; lin
     </div>
   </div>
 </div>`;
-  return baseLayout({ ...opts, title: "Links", content, userscripts: USERSCRIPTS });
+	return baseLayout({ ...opts, title: 'Links', content, userscripts: USERSCRIPTS });
 }

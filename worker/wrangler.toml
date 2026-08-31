@@ -2,6 +2,13 @@ name = "shortener"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 
+[vars]
+API_USER_ID = "1"
+DISABLE_REGISTRATION = "false"
+ROOT_REDIRECT = ""
+NOT_FOUND_BEHAVIOR = "redirect"
+THEME = "darkly"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "shortener"

@@ -1,0 +1,9 @@
+name = "shortener"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shortener"
+database_id = "local"
+migrations_dir = "migrations"

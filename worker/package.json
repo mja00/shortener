@@ -1,0 +1,23 @@
+{
+  "name": "shortener-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "hono": "^4.13.5",
+    "jose": "^6.2.10"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.9.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@types/node": "^26.4.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

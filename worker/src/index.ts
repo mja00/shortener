@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { api } from "./routes/api";
 import { redirect } from "./routes/redirect";
 
 export interface Bindings {
@@ -12,7 +13,10 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 app.get("/health", (c) => c.text("ok"));
 
-// Registered before any future catch-all so aliases resolve first.
+app.route("/api", api);
+
+// Registered after /api so the catch-all never swallows API paths; Hono
+// matches in registration order.
 app.route("/", redirect);
 
 export default {

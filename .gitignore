@@ -1,9 +1,6 @@
-# Build artifacts
-worker/node_modules/
-worker/.wrangler/
-
-# Local secrets
-worker/.dev.vars
+node_modules/
+.wrangler/
+.dev.vars
 .env.prod
 .env.prod.db
 

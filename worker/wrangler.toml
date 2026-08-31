@@ -12,5 +12,5 @@ THEME = "darkly"
 [[d1_databases]]
 binding = "DB"
 database_name = "shortener"
-database_id = "local"
+database_id = "f6539397-d3be-489f-8ab5-f5751fcd34ba"
 migrations_dir = "migrations"

@@ -4,15 +4,36 @@ import { hashPassword, signSession, verifyPassword, verifySession } from "../src
 const SECRET = "test-secret-key";
 
 describe("hashPassword/verifyPassword", () => {
-  it("roundtrips a password", () => {
+  it("roundtrips a password", async () => {
     const hash = hashPassword("hunter2");
     expect(hash).not.toBe("hunter2");
-    expect(verifyPassword("hunter2", hash)).toBe(true);
+    expect(await verifyPassword("hunter2", hash)).toBe(true);
   });
 
-  it("rejects a wrong password", () => {
+  it("verifies Werkzeug pbkdf2 hashes (migrated data)", async () => {
+    // Format: pbkdf2:sha256:<iters>$<urlsafe-b64-salt>$<hex digest>
+    const subtle = crypto.subtle;
+    const key = await subtle.importKey("raw", new TextEncoder().encode("hunter2"), "PBKDF2", false, ["deriveBits"]);
+    const salt = "lWDJ8tSVNgiQH8wO";
+    const bits = await subtle.deriveBits(
+      { name: "PBKDF2", hash: "SHA-256", salt: new TextEncoder().encode(salt), iterations: 260000 },
+      key,
+      256
+    );
+    const hex = [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const werkzeugHash = `pbkdf2:sha256:260000$${salt}$${hex}`;
+    expect(await verifyPassword("hunter2", werkzeugHash)).toBe(true);
+    expect(await verifyPassword("wrong", werkzeugHash)).toBe(false);
+  });
+
+  it("rejects malformed pbkdf2 hashes", async () => {
+    expect(await verifyPassword("x", "pbkdf2:sha256:notanumber$abc$def")).toBe(false);
+    expect(await verifyPassword("x", "pbkdf2:sha256:260000")).toBe(false);
+  });
+
+  it("rejects a wrong password", async () => {
     const hash = hashPassword("hunter2");
-    expect(verifyPassword("wrong", hash)).toBe(false);
+    expect(await verifyPassword("wrong", hash)).toBe(false);
   });
 
   it("produces a bcrypt-format hash", () => {

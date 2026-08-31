@@ -54,8 +54,20 @@ web.post("/login", async (c) => {
   }
 
   const user = await first<User>(c.env.DB, "SELECT * FROM users WHERE username = ?", username);
-  if (!user || !verifyPassword(password, user.password)) {
+  if (!user || !(await verifyPassword(password, user.password))) {
     return c.redirect(flashUrl("/login", "Incorrect details.", "danger"), 302);
+  }
+
+  // Transparent upgrade: pre-migration Werkzeug pbkdf2 hashes re-hash to
+  // bcrypt after a successful login, so the legacy format disappears.
+  if (user.password.startsWith("pbkdf2:")) {
+    await run(
+      c.env.DB,
+      "UPDATE users SET password = ?, updated_at = ? WHERE id = ?",
+      hashPassword(password),
+      nowISO(),
+      user.id
+    );
   }
 
   const token = await signSession({ id: user.id, username: user.username }, c.env.SECRET_KEY);

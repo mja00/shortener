@@ -35,8 +35,43 @@ export function hashPassword(password: string): string {
   return hashSync(password, 10);
 }
 
-export function verifyPassword(password: string, hash: string): boolean {
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  if (hash.startsWith("pbkdf2:")) {
+    const derived = await verifyPbkdf2(password, hash);
+    return derived;
+  }
   return compareSync(password, hash);
+}
+
+// Werkzeug 2.x pbkdf2 hashes ("pbkdf2:sha256:<iters>$<salt>$<hex>") from the
+// migrated Postgres data; bcryptjs can't read them, so verify natively here.
+// Web login transparently upgrades these to bcrypt on success (see routes/web).
+async function verifyPbkdf2(password: string, hash: string): Promise<boolean> {
+  // "pbkdf2:<method>:<iterations>$<salt>$<hexdigest>" — the $-segments come
+  // after the LAST colon, so split $ first, then method/iterations off the head.
+  const dollar = hash.split("$");
+  if (dollar.length !== 3) return false;
+  const [method, iterStr] = dollar[0]!.slice("pbkdf2:".length).split(":");
+  const salt = dollar[1]!;
+  const expected = dollar[2]!;
+  if (!method || !iterStr || !salt || !expected) return false;
+  const iterations = parseInt(iterStr, 10);
+  if (!Number.isInteger(iterations) || iterations < 1) return false;
+  const derived = await pbkdf2Derive(password, salt, iterations, expected.length / 2, method);
+  return derived !== null && safeEqual(derived, expected);
+}
+
+async function pbkdf2Derive(
+  password: string, salt: string, iterations: number, lengthBytes: number, method: string
+): Promise<string | null> {
+  const algo = method === "sha512" ? "SHA-512" : method === "sha1" ? "SHA-1" : "SHA-256";
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: algo, salt: new TextEncoder().encode(salt), iterations },
+    key,
+    lengthBytes * 8
+  );
+  return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function keyBytes(secret: string): Uint8Array {

@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { api } from "./routes/api";
 import { redirect } from "./routes/redirect";
+import { web } from "./routes/web";
 
+// AppEnv: env bindings plus the session user set by requireSession.
+export type AppEnv = { Bindings: Bindings; Variables: { user: { id: number; username: string } } };
 export interface Bindings {
   DB: D1Database;
   SECRET_KEY: string;
@@ -9,14 +12,15 @@ export interface Bindings {
   [key: string]: unknown;
 }
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<AppEnv>();
 
 app.get("/health", (c) => c.text("ok"));
 
 app.route("/api", api);
 
-// Registered after /api so the catch-all never swallows API paths; Hono
-// matches in registration order.
+// Web routes before the redirect catch-all; Hono matches in registration
+// order and /:alias would swallow /login, /links, etc.
+app.route("/", web);
 app.route("/", redirect);
 
 export default {

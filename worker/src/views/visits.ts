@@ -1,0 +1,78 @@
+import { baseLayout } from "./base";
+
+// Port of templates/visits.html. Rows come from /visits/data (server-side
+// DataTables), so the tbody stays empty exactly like the original.
+const USERSCRIPTS = `<script>
+  $(document).ready(function () {
+    let table = $('#visits').DataTable({
+      "order": [[0, "desc"]],
+      "ajax": '/visits/data',
+      "serverSide": true,
+      "columns": [
+        {data: "id", orderable: false, searchable: false, visible: false},
+        {data: "shortlink.short_url", orderable: false},
+        {data: "ip_address", orderable: false},
+        {data: "user_agent", orderable: false, width: "40%"},
+        {data: "country_name", orderable: false},
+        {data: "created_at", orderable: false, render: function (data, type, row, meta) {
+            return moment(data).local().format('MM/DD/YYYY hh:mm:ss A');
+          }
+        }
+      ]
+    });
+
+    table.on("draw", function () {
+      // Get all the rows that have been added to the table
+      let rows = table.rows().data();
+      // Iterate over the rows
+      for (let i = 0; i < rows.length; i++) {
+        // Get the row
+        let row = rows[i];
+        // IP Address changes
+        // Get the ip_address
+        let ip_address = row.ip_address;
+        // Create new a element
+        let a = document.createElement("a");
+        // Set the href attribute
+        a.setAttribute("href", "https://ipinfo.io/" + ip_address);
+        // Set the text content
+        a.innerText = ip_address;
+        // Replace the ip_address with the a element
+        table.cell(i, 2).node().innerHTML = a.outerHTML;
+
+        // Shortlink changes
+        // Get the shortlink
+        let shortlink = row.shortlink.short_url;
+        // Create new a element
+        let a2 = document.createElement("a");
+        // Set the href attribute
+        a2.setAttribute("href", shortlink);
+        // Set the text content
+        a2.innerText = shortlink;
+        // Replace the shortlink with the a element
+        table.cell(i, 1).node().innerHTML = a2.outerHTML;
+      }
+    })
+  });
+</script>`;
+
+// Port of templates/visits.html.
+export function visitsPage(opts: { theme: string; user: { username: string }; msg?: string; msg_type?: string }): string {
+  const content = `<div class="container mt-2">
+  <table class="table table-striped table-hover" id="visits">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Shortlink</th>
+      <th>IP Address</th>
+      <th>User Agent</th>
+      <th>Country</th>
+      <th>Time (local)</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>`;
+  return baseLayout({ ...opts, title: "Visits", content, userscripts: USERSCRIPTS });
+}

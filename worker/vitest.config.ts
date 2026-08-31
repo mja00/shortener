@@ -14,12 +14,16 @@ export default defineWorkersConfig(async () => {
       poolOptions: {
         workers: {
           wrangler: { configPath: "./wrangler.toml" },
-          singleWorker: true,
           miniflare: {
             compatibilityDate: "2025-09-01",
             bindings: {
               SECRET_KEY: "test-secret-key",
               API_KEY: "test-api-key",
+              API_USER_ID: "1",
+              DISABLE_REGISTRATION: "false",
+              ROOT_REDIRECT: "",
+              NOT_FOUND_BEHAVIOR: "redirect",
+              THEME: "darkly",
               TEST_MIGRATIONS: migrations,
             },
             d1Databases: ["DB"],

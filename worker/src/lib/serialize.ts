@@ -10,7 +10,9 @@ export interface LinkDict {
   max_clicks: number;
   current_clicks: number;
   deleted: boolean;
-  created_by: number | null;
+  // Number (link row) normally; username string on /links/info responses, as
+  // the original route overwrote it with the owner's username.
+  created_by: number | string | null;
   created_at: string;
   updated_at: string;
 }

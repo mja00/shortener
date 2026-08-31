@@ -36,8 +36,10 @@ npx wrangler secret put API_KEY
 npm run deploy
 
 # smoke test: expect a JSON list of links
-curl -H "Authorization: <your API_KEY>" https://<your-worker>.workers.dev/api/links/active
+curl -H "Authorization: <your API_KEY>" https://mart.fyi/api/links/active
 ```
+
+The worker serves on `https://mart.fyi` and `https://www.mart.fyi` via zone routes in `wrangler.toml` (`workers_dev` is disabled, so no `*.workers.dev` URL).
 
 `wrangler.toml` ships with `database_id = "local"` for development; replace it with the real id before deploying.
 

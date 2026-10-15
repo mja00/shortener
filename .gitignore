@@ -1,8 +1,7 @@
 node_modules/
 .wrangler/
 .dev.vars
-.env.prod
-.env.prod.db
+wrangler.production.toml
 
 *.pyc
 

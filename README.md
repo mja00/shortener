@@ -36,13 +36,11 @@ npx wrangler login
 npx wrangler d1 create shortener
 ```
 
-Copy the `database_id` it prints into the `[[d1_databases]]` block in `wrangler.toml`, replacing the existing one.
+Copy the `database_id` it prints into the `[[d1_databases]]` block in `wrangler.toml`, replacing the placeholder.
 
-### 3. Point it at your domain
+### 3. Pick a hostname (optional)
 
-`wrangler.toml` is set up for mart.fyi. Change it to match your setup:
-
-**Your own domain** (must be a zone on your Cloudflare account): replace the two `[[routes]]` blocks:
+Out of the box the worker is served at `https://shortener.<your-subdomain>.workers.dev`. To use your own domain (it must be a zone on your Cloudflare account), set `workers_dev = false` in `wrangler.toml` and add a route:
 
 ```toml
 [[routes]]
@@ -52,11 +50,9 @@ custom_domain = true
 
 `custom_domain = true` creates the DNS record for you. If you want the worker on an existing zone's root or a path pattern instead, use `pattern = "example.com/*"` with `zone_name = "example.com"`.
 
-**No domain**: delete the `[[routes]]` blocks and set `workers_dev = true`. The worker will be served at `https://shortener.<your-subdomain>.workers.dev`.
-
 ### 4. Configure
 
-Edit `[vars]` in `wrangler.toml`. See [Configuration](#configuration) for what each one does. For the first deploy, set `DISABLE_REGISTRATION = "false"` so you can create your account.
+Edit `[vars]` in `wrangler.toml` if you want to change the defaults. See [Configuration](#configuration) for what each one does. Registration starts open so you can create your account.
 
 ### 5. Create the schema and deploy
 
@@ -150,6 +146,19 @@ To use it on your fork, add two repository secrets:
 
 Worker secrets (`SECRET_KEY`, `API_KEY`) are not managed by the workflow; set them once with `wrangler secret put` as above.
 
+### Keeping your config out of git
+
+If you'd rather not commit your domain, database ID, and vars (e.g. to keep your fork mergeable with upstream), leave `wrangler.toml` generic and put your real config in `wrangler.production.toml`, which is gitignored:
+
+- Locally, `npm run deploy` applies migrations and deploys using `wrangler.production.toml`.
+- In Actions, store the whole file as a repository **variable** named `WRANGLER_PRODUCTION_TOML` (Settings > Secrets and variables > Actions > Variables). The deploy workflow writes it over `wrangler.toml` after tests pass. Nothing in it is secret, so a variable is fine.
+
+```sh
+gh variable set WRANGLER_PRODUCTION_TOML < wrangler.production.toml
+```
+
+Re-run that whenever you change the file. When adding shared settings like `compatibility_date`, update both files.
+
 ## Local development
 
 ```sh
@@ -167,8 +176,6 @@ npm run lint
 npm run typecheck
 npm test
 ```
-
-> `npm run dev` and `npm run deploy` are wired to the maintainer's `.env.prod` file. If you don't have one, use `npx wrangler dev` and `npx wrangler deploy` directly.
 
 ## Project layout
 

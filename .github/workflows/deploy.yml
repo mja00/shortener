@@ -31,6 +31,13 @@ jobs:
 
       - run: npm test
 
+      # Runs after tests, which need the committed config; forks without the variable deploy wrangler.toml as-is.
+      - name: use production wrangler config
+        if: vars.WRANGLER_PRODUCTION_TOML != ''
+        run: printf '%s\n' "$WRANGLER_PRODUCTION_TOML" > wrangler.toml
+        env:
+          WRANGLER_PRODUCTION_TOML: ${{ vars.WRANGLER_PRODUCTION_TOML }}
+
       - name: apply d1 migrations
         run: npx wrangler d1 migrations apply shortener --remote
         env:

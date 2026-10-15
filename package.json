@@ -3,9 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --env-file .env.prod",
-    "deploy": "npm run -s deploy:secrets && wrangler deploy",
-    "deploy:secrets": "grep -E '^(SECRET_KEY|API_KEY)=' .env.prod | tr -d '\\r' > /tmp/shortener-secrets.env && npx wrangler secret bulk --name shortener /tmp/shortener-secrets.env && rm /tmp/shortener-secrets.env",
+    "dev": "wrangler dev",
+    "deploy": "wrangler d1 migrations apply shortener --remote --config wrangler.production.toml && wrangler deploy --config wrangler.production.toml",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",

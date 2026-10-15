@@ -2,8 +2,8 @@ name = "shortener"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 
-workers_dev = false
-preview_urls = false
+# Serves on shortener.<subdomain>.workers.dev; see the README for using your own domain.
+workers_dev = true
 
 [observability]
 enabled = true
@@ -15,23 +15,14 @@ enabled = true
   enabled = true
   head_sampling_rate = 0.05
 
-[[routes]]
-pattern = "mart.fyi/*"
-zone_name = "mart.fyi"
-
-[[routes]]
-pattern = "www.mart.fyi/*"
-zone_name = "mart.fyi"
-
 [vars]
 API_USER_ID = "1"
-DISABLE_REGISTRATION = "true"
-ROOT_REDIRECT = "https://x.com/itsmja00"
+DISABLE_REGISTRATION = "false"
 NOT_FOUND_BEHAVIOR = "redirect"
-THEME = "slate"
+THEME = "darkly"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "shortener"
-database_id = "f6539397-d3be-489f-8ab5-f5751fcd34ba"
+database_id = "replace-with-your-database-id"
 migrations_dir = "migrations"

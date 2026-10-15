@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 
 import { requireApiKey } from '../lib/auth';
+import { isUniqueViolation } from '../lib/db';
 import {
 	aliasTaken,
 	getLink,
@@ -93,8 +94,11 @@ api.post('/links', async (c) => {
 	try {
 		const link = await insertLink(c.env.DB, parsed.fields, createdBy);
 		return c.json({ link: linkToDict(link) }, 201);
-	} catch {
+	} catch (error) {
 		// The UNIQUE index catches a concurrent create that slipped past the pre-check.
+		if (!isUniqueViolation(error)) {
+			throw error;
+		}
 		return c.json({ error: 'Alias is taken' }, 400);
 	}
 });
@@ -115,7 +119,15 @@ api.put('/links/:id', async (c) => {
 		return c.json({ error: 'Alias is taken' }, 400);
 	}
 
-	const updated = await updateLink(c.env.DB, id, parsed.fields);
+	let updated;
+	try {
+		updated = await updateLink(c.env.DB, id, parsed.fields);
+	} catch (error) {
+		if (!isUniqueViolation(error)) {
+			throw error;
+		}
+		return c.json({ error: 'Alias is taken' }, 400);
+	}
 	if (!updated) {
 		return c.json({ error: 'Link not found' }, 404);
 	}

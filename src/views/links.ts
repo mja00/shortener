@@ -116,7 +116,7 @@ function linkRow(link: Link): string {
 	const created = esc(link.created_at);
 	return `<tr>
     <th scope="row">${link.id}</th>
-    <td><a href="/${esc(link.short_url)}">${esc(link.short_url)}</a></td>
+    <td><a href="/${encodeURIComponent(link.short_url)}">${esc(link.short_url)}</a></td>
     <td>${esc(link.original_url)}</td>
     <td>${clicks}</td>
     <td class="local-time" data-order="${expiration}">${expiration}</td>

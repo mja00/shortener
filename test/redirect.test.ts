@@ -82,6 +82,15 @@ describe('GET /:alias redirect engine', () => {
 		expect((await getLink('xyZab')).current_clicks).toBe(1);
 	});
 
+	it('resolves aliases by decoded path and by the escaped form older links used', async () => {
+		await seedLink('a%b');
+		await seedLink('a%2Fb');
+		for (const [path, alias] of [['/a%25b', 'a%b'], ['/a%2Fb', 'a%2Fb']]) {
+			const res = await exports.default.fetch(`https://example.com${path}`, { redirect: 'manual' });
+			expect(res.headers.get('Location')).toBe(`https://example.com/${alias}`);
+		}
+	});
+
 	it('falls back to / for an already-expired link without recording a visit', async () => {
 		const res = await exports.default.fetch('https://example.com/expiredlink', { redirect: 'manual' });
 		expect(res.status).toBe(302);

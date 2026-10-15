@@ -24,6 +24,11 @@ export function nowISO(): string {
 	return new Date().toISOString();
 }
 
+// Lets callers turn a lost race on a UNIQUE index into a user-facing message while other failures still surface.
+export function isUniqueViolation(error: unknown): boolean {
+	return error instanceof Error && error.message.includes('UNIQUE constraint failed');
+}
+
 // Rows migrated from Postgres hold naive timestamps ("2022-03-18 02:03:29.948202")
 // that JS would read as local time, and that don't sort against ISO strings. NaN if unparseable.
 export function parseStoredTimestamp(value: string): number {

@@ -13,7 +13,12 @@ const redirect = new Hono<AppEnv>();
 redirect.get('/:alias{.+}', async (c) => {
 	const db = c.env.DB;
 	const alias = c.req.param('alias').replace(/\/$/, '');
-	const link = await getLinkByAlias(db, alias);
+	// Lookups used to keep reserved escapes like %2F intact, so links already shared for such aliases still need that form.
+	const legacyAlias = c.req.path.slice(1).replace(/\/$/, '');
+	let link = await getLinkByAlias(db, alias);
+	if (!link && legacyAlias !== alias) {
+		link = await getLinkByAlias(db, legacyAlias);
+	}
 
 	if (!link || link.deleted) {
 		if (c.env.NOT_FOUND_BEHAVIOR === '404') {

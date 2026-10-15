@@ -216,6 +216,15 @@ describe('create', () => {
 		const row = await env.DB.prepare('SELECT short_url FROM shortlinks').first<{ short_url: string; }>();
 		expect(row!.short_url).not.toBe('');
 	});
+
+	it('reports a concurrent duplicate alias as taken instead of a 500', async () => {
+		const cookie = await loginAs('racer', 'pw');
+		const results = await Promise.all([1, 2, 3].map(() => exports.default.fetch('https://example.com/create', postForm(cookie, { url: 'https://example.com', alias: 'race' }))));
+		const locations = results.map(res => res.headers.get('location') ?? '');
+		expect(results.map(res => res.status)).toEqual([302, 302, 302]);
+		expect(locations.filter(location => location.includes('created+successfully'))).toHaveLength(1);
+		expect(locations.filter(location => location.includes('Alias+already+exists'))).toHaveLength(2);
+	});
 });
 
 describe('links info/edit lifecycle', () => {

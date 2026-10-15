@@ -15,6 +15,7 @@ import {
 import {
 	all,
 	first,
+	isUniqueViolation,
 	nowISO,
 	run,
 } from '../lib/db';
@@ -162,12 +163,19 @@ web.post('/create', requireSession, async (c) => {
 		return c.redirect(flashUrl('/create', 'Error: Invalid expiration date', 'danger'), 302);
 	}
 
-	await insertLink(c.env.DB, {
-		original_url: form.url,
-		short_url: requested || await generateUniqueAlias(c.env.DB),
-		max_clicks: normalizeMaxClicks(form.max_clicks),
-		expiration_date: expiration,
-	}, c.get('user').id);
+	try {
+		await insertLink(c.env.DB, {
+			original_url: form.url,
+			short_url: requested || await generateUniqueAlias(c.env.DB),
+			max_clicks: normalizeMaxClicks(form.max_clicks),
+			expiration_date: expiration,
+		}, c.get('user').id);
+	} catch (error) {
+		if (!isUniqueViolation(error)) {
+			throw error;
+		}
+		return c.redirect(flashUrl('/create', 'Alias already exists. Please try again.', 'danger'), 302);
+	}
 	return c.redirect(flashUrl('/links', 'Short link created successfully!', 'success'), 302);
 });
 
@@ -213,12 +221,20 @@ web.post('/links/edit/:id', requireSession, async (c) => {
 		return c.json({ error: 'Invalid expiration date.' });
 	}
 
-	const updated = await updateLink(c.env.DB, link.id, {
-		original_url: form.url || link.original_url,
-		short_url: alias,
-		max_clicks: normalizeMaxClicks(form.max_clicks),
-		expiration_date: expiration,
-	});
+	let updated;
+	try {
+		updated = await updateLink(c.env.DB, link.id, {
+			original_url: form.url || link.original_url,
+			short_url: alias,
+			max_clicks: normalizeMaxClicks(form.max_clicks),
+			expiration_date: expiration,
+		});
+	} catch (error) {
+		if (!isUniqueViolation(error)) {
+			throw error;
+		}
+		return c.json({ error: 'Alias already exists.' });
+	}
 	return c.json({
 		success: 'Short link updated successfully',
 		link_data: updated ? linkToDict(updated) : null,

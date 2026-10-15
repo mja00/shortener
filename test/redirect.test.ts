@@ -105,6 +105,32 @@ describe('GET /:alias redirect engine', () => {
 		expect(await getVisits('maxlink')).toHaveLength(0);
 	});
 
+	// Postgres-migrated timestamps are zone-less and don't sort against ISO strings.
+	it('honours naive migrated timestamps as UTC instants', async () => {
+		await seedLink('naivepast', { expiration_date: '2020-01-01 00:00:00.123456' });
+		await seedLink('naivefuture', { expiration_date: '2999-01-01 00:00:00.123456' });
+
+		const past = await exports.default.fetch('https://example.com/naivepast', { redirect: 'manual' });
+		expect(past.headers.get('Location')).toBe('/');
+		expect((await getLink('naivepast')).expired).toBe(1);
+
+		const future = await exports.default.fetch('https://example.com/naivefuture', { redirect: 'manual' });
+		expect(future.headers.get('Location')).toBe('https://example.com/naivefuture');
+		expect((await getLink('naivefuture')).expired).toBe(0);
+	});
+
+	it('keeps a link with an unparseable expiration date live', async () => {
+		await seedLink('junkdate', { expiration_date: 'not a date' });
+		const res = await exports.default.fetch('https://example.com/junkdate', { redirect: 'manual' });
+		expect(res.headers.get('Location')).toBe('https://example.com/junkdate');
+		expect((await getLink('junkdate')).expired).toBe(0);
+	});
+
+	it('records non-ISO country codes as Unknown', async () => {
+		await exports.default.fetch('https://example.com/xyZab', { headers: { 'CF-IPCountry': 'T1' }, redirect: 'manual' });
+		expect((await getVisits('xyZab'))[0]?.country_name).toBe('Unknown');
+	});
+
 	it('treats an expired link\'s visit count as untouched', async () => {
 		await exports.default.fetch('https://example.com/expiredlink', { redirect: 'manual' });
 		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM visits').all<{ n: number; }>();

@@ -1,3 +1,5 @@
+import type { SessionUser } from '../types';
+
 export function esc(value: unknown): string {
 	return String(value)
 		.replaceAll('&', '&amp;')
@@ -7,14 +9,17 @@ export function esc(value: unknown): string {
 		.replaceAll('\'', '&#39;');
 }
 
-export interface BaseOptions {
-	title?: string;
+// What every page receives from the route: theme, the signed-in user, and the flash message.
+export interface PageOptions {
 	theme: string;
-	user?: { username: string; } | null;
+	user?: SessionUser | null;
 	msg?: string;
 	msg_type?: string;
+}
+
+interface LayoutOptions extends PageOptions {
+	title: string;
 	content: string;
-	userstyles?: string;
 	userscripts?: string;
 }
 
@@ -24,8 +29,8 @@ const CDN_STYLE_LINKS = `<link rel="stylesheet" href="https://cdnjs.cloudflare.c
   <link rel="stylesheet" type="text/css"
       href="https://cdn.datatables.net/v/bs5/dt-1.13.1/b-2.3.3/r-2.4.0/datatables.min.css"/>`;
 
-export function baseLayout(opts: BaseOptions): string {
-	const { title, theme, user, msg, msg_type, content, userstyles, userscripts } = opts;
+export function baseLayout(opts: LayoutOptions): string {
+	const { title, theme, user, msg, msg_type, content, userscripts } = opts;
 	const alertType = msg_type === 'success' ? 'success' : (msg_type === 'warning' ? 'warning' : 'danger');
 	const flashBlock = msg
 		? `<div class="container mt-4">
@@ -66,22 +71,17 @@ export function baseLayout(opts: BaseOptions): string {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="title" content="URL Shortener">
-    <meta name="description" content="URL shortener built on Python">
+    <meta name="description" content="URL shortener">
     <meta name="robots" content="index, follow">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="language" content="English">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://short.theairplan.com/">
     <meta property="og:title" content="URL Shortener">
-    <meta property="og:description" content="URL Shortener built on Python">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://short.theairplan.com/">
+    <meta property="og:description" content="URL shortener">
+    <meta property="twitter:card" content="summary">
     <meta property="twitter:title" content="URL Shortener">
-    <meta property="twitter:description" content="URL Shortener built on Python">
-    <title>${esc(title ?? '')} | Shortener</title>
+    <meta property="twitter:description" content="URL shortener">
+    <title>${esc(title)} | Shortener</title>
     <link rel="stylesheet" href="https://bootswatch.com/5/${esc(theme)}/bootstrap.min.css" id="bootstrap-style">
     ${CDN_STYLE_LINKS}
-    ${userstyles ?? ''}
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

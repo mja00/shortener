@@ -1,7 +1,8 @@
 import { baseLayout } from './base';
 
-// Port of templates/login.html.
-export function loginPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+import type { PageOptions } from './base';
+
+export function loginPage(opts: PageOptions): string {
 	const content = `<div class="container col-md-6 mt-2 mb-2">
   <div class="card">
     <div class="card-header">

@@ -15,7 +15,7 @@ Everything else, including the parity quirks, is kept: raw `Authorization`-heade
 ## Layout
 - `src/` — Worker code (`routes/`, `views/`, `lib/`)
 - `migrations/` — D1 schema migrations
-- `test/` — Vitest suite (`@cloudflare/vitest-pool-workers`, local D1)
+- `test/` — Vitest suite (`@cloudflare/vitest-plugin`, local D1)
 - `wrangler.toml` — bindings, routes, observability
 
 ## Development

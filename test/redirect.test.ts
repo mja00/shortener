@@ -1,4 +1,4 @@
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import {
 	beforeEach,
 	describe,
@@ -56,7 +56,7 @@ beforeEach(async () => {
 
 describe('GET /:alias redirect engine', () => {
 	it('redirects an active alias to its original URL and records a visit', async () => {
-		const res = await SELF.fetch('https://example.com/xyZab', {
+		const res = await exports.default.fetch('https://example.com/xyZab', {
 			headers: { 'CF-Connecting-IP': '203.0.113.9', 'CF-IPCountry': 'DE', 'User-Agent': 'vitest-agent' },
 			redirect: 'manual',
 		});
@@ -76,21 +76,21 @@ describe('GET /:alias redirect engine', () => {
 	});
 
 	it('strips a trailing slash before lookup', async () => {
-		const res = await SELF.fetch('https://example.com/xyZab/', { redirect: 'manual' });
+		const res = await exports.default.fetch('https://example.com/xyZab/', { redirect: 'manual' });
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe('https://example.com/xyZab');
 		expect((await getLink('xyZab')).current_clicks).toBe(1);
 	});
 
 	it('falls back to / for an already-expired link without recording a visit', async () => {
-		const res = await SELF.fetch('https://example.com/expiredlink', { redirect: 'manual' });
+		const res = await exports.default.fetch('https://example.com/expiredlink', { redirect: 'manual' });
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe('/');
 		expect(await getVisits('expiredlink')).toHaveLength(0);
 	});
 
 	it('marks a date-expired link expired and redirects to / without a visit', async () => {
-		const res = await SELF.fetch('https://example.com/datelink', { redirect: 'manual' });
+		const res = await exports.default.fetch('https://example.com/datelink', { redirect: 'manual' });
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe('/');
 		expect((await getLink('datelink')).expired).toBe(1);
@@ -98,7 +98,7 @@ describe('GET /:alias redirect engine', () => {
 	});
 
 	it('marks a max-clicks-exhausted link expired and redirects to / without a visit', async () => {
-		const res = await SELF.fetch('https://example.com/maxlink', { redirect: 'manual' });
+		const res = await exports.default.fetch('https://example.com/maxlink', { redirect: 'manual' });
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe('/');
 		expect((await getLink('maxlink')).expired).toBe(1);
@@ -106,7 +106,7 @@ describe('GET /:alias redirect engine', () => {
 	});
 
 	it('treats an expired link\'s visit count as untouched', async () => {
-		await SELF.fetch('https://example.com/expiredlink', { redirect: 'manual' });
+		await exports.default.fetch('https://example.com/expiredlink', { redirect: 'manual' });
 		const { results } = await env.DB.prepare('SELECT COUNT(*) AS n FROM visits').all<{ n: number; }>();
 		expect(results?.[0]?.n).toBe(0);
 	});

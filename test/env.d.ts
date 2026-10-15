@@ -1,9 +1,17 @@
+import type * as worker from '../src/index';
 import type { Bindings } from '../src/index';
 import type { D1Migration } from 'cloudflare:test';
 
-declare module 'cloudflare:test' {
-	interface ProvidedEnv extends Bindings {
-		TEST_MIGRATIONS: D1Migration[];
+declare global {
+	namespace Cloudflare {
+		interface Env extends Bindings {
+			TEST_MIGRATIONS: D1Migration[];
+		}
+
+		// Types `exports.default` from cloudflare:workers as the worker under test.
+		interface GlobalProps {
+			mainModule: typeof worker;
+		}
 	}
 }
 

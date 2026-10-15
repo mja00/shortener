@@ -1,4 +1,4 @@
-import { SELF, env } from 'cloudflare:test';
+import { env, exports } from 'cloudflare:workers';
 import {
 	beforeEach,
 	describe,
@@ -36,7 +36,7 @@ async function json(res: Response): Promise<Record<string, unknown>> {
 }
 
 function linkGet(path: string, init?: RequestInit): Promise<Response> {
-	return SELF.fetch(`https://example.com/api${path}`, init);
+	return exports.default.fetch(`https://example.com/api${path}`, init);
 }
 
 beforeEach(async () => {

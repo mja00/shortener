@@ -1,3 +1,4 @@
+import { createExecutionContext } from 'cloudflare:test';
 import { env, exports } from 'cloudflare:workers';
 import {
 	beforeEach,
@@ -6,6 +7,7 @@ import {
 	it,
 } from 'vitest';
 
+import worker from '../src/index';
 import { hashPassword } from '../src/lib/auth';
 
 import type { Link } from '../src/types';
@@ -129,6 +131,16 @@ describe('register', () => {
 		expect(res.status).toBe(302);
 		expect(res.headers.get('location')).toContain('Please+fill+out+all+fields');
 	});
+
+	it('sends both GET and POST to /login with a notice when registration is disabled', async () => {
+		const disabledEnv = { ...env, DISABLE_REGISTRATION: 'true' };
+		for (const init of [{ redirect: 'manual' } as RequestInit, form({ username: 'blocked', password: 'pw', confirm: 'pw' })]) {
+			const res = await worker.fetch(new Request('https://example.com/register', init), disabledEnv, createExecutionContext());
+			expect(res.status).toBe(302);
+			expect(res.headers.get('location')).toBe('/login?msg=Registration+is+disabled.&msg_type=danger');
+		}
+		expect(await env.DB.prepare('SELECT 1 FROM users WHERE username = ?').bind('blocked').first()).toBeNull();
+	});
 });
 
 describe('login/logout', () => {
@@ -204,6 +216,15 @@ describe('create', () => {
 		const row = await env.DB.prepare('SELECT short_url FROM shortlinks').first<{ short_url: string; }>();
 		expect(row!.short_url).not.toBe('');
 	});
+
+	it('reports a concurrent duplicate alias as taken instead of a 500', async () => {
+		const cookie = await loginAs('racer', 'pw');
+		const results = await Promise.all([1, 2, 3].map(() => exports.default.fetch('https://example.com/create', postForm(cookie, { url: 'https://example.com', alias: 'race' }))));
+		const locations = results.map(res => res.headers.get('location') ?? '');
+		expect(results.map(res => res.status)).toEqual([302, 302, 302]);
+		expect(locations.filter(location => location.includes('created+successfully'))).toHaveLength(1);
+		expect(locations.filter(location => location.includes('Alias+already+exists'))).toHaveLength(2);
+	});
 });
 
 describe('links info/edit lifecycle', () => {
@@ -247,6 +268,63 @@ describe('links info/edit lifecycle', () => {
 		const row = await env.DB.prepare('SELECT original_url, max_clicks FROM shortlinks WHERE id = ?').bind(id).first<{ original_url: string; max_clicks: number; }>();
 		expect(row!.original_url).toBe('https://example.com/edited');
 		expect(row!.max_clicks).toBe(5);
+	});
+
+	it('keeps the current alias and url when the edit form sends blanks', async () => {
+		const cookie = await loginAs('owner4b', 'pw');
+		const id = await seedLink('keepalias');
+		const res = await exports.default.fetch(`https://example.com/links/edit/${id}`,
+			postForm(cookie, { url: '', alias: '', max_clicks: '-1', expiration_date: '' }));
+		const data = (await res.json()) as { link_data: Link; };
+		expect(data.link_data.short_url).toBe('keepalias');
+		expect(data.link_data.original_url).toBe('https://example.com/keepalias');
+	});
+
+	it('rejects an invalid expiration on edit instead of clearing it', async () => {
+		const cookie = await loginAs('owner4c', 'pw');
+		const id = await seedLink('keepexp', { expiration_date: '2999-01-01T00:00:00.000Z' });
+		const res = await exports.default.fetch(`https://example.com/links/edit/${id}`,
+			postForm(cookie, { url: 'https://example.com/x', alias: 'keepexp', expiration_date: 'garbage' }));
+		expect(await res.json()).toEqual({ error: 'Invalid expiration date.' });
+		expect((await env.DB.prepare('SELECT expiration_date FROM shortlinks WHERE id = ?').bind(id).first<Link>())!.expiration_date)
+			.toBe('2999-01-01T00:00:00.000Z');
+	});
+
+	it('rejects renaming to an alias another link uses', async () => {
+		const cookie = await loginAs('owner4d', 'pw');
+		await seedLink('existing');
+		const id = await seedLink('renamer');
+		const res = await exports.default.fetch(`https://example.com/links/edit/${id}`,
+			postForm(cookie, { url: 'https://example.com/x', alias: 'existing' }));
+		expect(await res.json()).toEqual({ error: 'Alias already exists.' });
+	});
+
+	it('treats a blank max click count as unlimited, not zero', async () => {
+		const cookie = await loginAs('owner4e', 'pw');
+		await exports.default.fetch('https://example.com/create', postForm(cookie, { url: 'https://example.com', alias: 'blankmax', max_clicks: '' }));
+		const row = await env.DB.prepare('SELECT max_clicks FROM shortlinks WHERE short_url = ?').bind('blankmax').first<Link>();
+		expect(row!.max_clicks).toBe(-1);
+	});
+
+	it('reads the create form expiration as milliseconds', async () => {
+		const cookie = await loginAs('owner4f', 'pw');
+		await exports.default.fetch('https://example.com/create', postForm(cookie, { url: 'https://example.com', alias: 'msexp', expiration_date: '1700000000000' }));
+		const row = await env.DB.prepare('SELECT expiration_date FROM shortlinks WHERE short_url = ?').bind('msexp').first<Link>();
+		expect(row!.expiration_date).toBe('2023-11-14T22:13:20.000Z');
+	});
+
+	it('flashes not-found instead of claiming success for an unknown id', async () => {
+		const cookie = await loginAs('owner4g', 'pw');
+		for (const path of ['delete', 'restore', 'hard_delete']) {
+			const res = await exports.default.fetch(`https://example.com/links/${path}/999999`, postForm(cookie, {}));
+			expect(res.headers.get('location')).toContain('Short+link+not+found.');
+		}
+	});
+
+	it('marks the session cookie secure over https', async () => {
+		await seedUser('secureuser', 'pw');
+		const res = await exports.default.fetch('https://example.com/login', form({ username: 'secureuser', password: 'pw' }));
+		expect(res.headers.get('set-cookie')).toMatch(/;\s*Secure/i);
 	});
 
 	it('soft deletes, shows in deleted, restores, hard deletes', async () => {

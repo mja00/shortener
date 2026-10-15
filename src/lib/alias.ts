@@ -1,4 +1,4 @@
-import { first } from './db';
+import { aliasTaken } from './links';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const ALIAS_LENGTH = 15;
@@ -8,23 +8,16 @@ const MAX_ATTEMPTS = 20;
 export function randomString(length: number): string {
 	const bytes = crypto.getRandomValues(new Uint8Array(length));
 	let out = '';
-	for (let i = 0; i < length; i++) {
-		out += ALPHABET[(bytes[i] ?? 0) % ALPHABET.length] as string;
+	for (const byte of bytes) {
+		out += ALPHABET.charAt(byte % ALPHABET.length);
 	}
 	return out;
 }
 
-export async function generateUniqueAlias(db: D1Database, preferred?: string): Promise<string> {
-	if (preferred) {
-		const taken = await first<{ 1: number; }>(db, 'SELECT 1 FROM shortlinks WHERE short_url = ?', preferred);
-		if (!taken) {
-			return preferred;
-		}
-	}
+export async function generateUniqueAlias(db: D1Database): Promise<string> {
 	for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
 		const candidate = randomString(ALIAS_LENGTH);
-		const taken = await first<{ 1: number; }>(db, 'SELECT 1 FROM shortlinks WHERE short_url = ?', candidate);
-		if (!taken) {
+		if (!(await aliasTaken(db, candidate))) {
 			return candidate;
 		}
 	}

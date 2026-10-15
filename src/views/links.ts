@@ -1,215 +1,139 @@
-import { esc } from './base';
-import { baseLayout } from './base';
+import { baseLayout, esc } from './base';
 
+import type { PageOptions } from './base';
 import type { Link } from '../types';
 
-// Port of templates/links.html. Flask rendered link fields straight into the
-// row markup; every interpolation here goes through esc() instead. Booleans
-// render as the original Jinja did (deleted/expired cells only mattered via
-// the action-button branch, driven by the numeric row values here).
-const USERSCRIPTS = `<script>
-  function showInfo(link_id) {
-    // GET request to /links/info/<alias>
-    $.ajax(
-      {
-        url: '/links/info/' + link_id,
-        type: 'GET',
-        success: function (data) {
-          let max_clicks;
-          let expiration_date;
-          // Check if an error occurred
-          if (data.error) {
-            console.log(data.error);
-            return;
-          }
-          // Set the info modal's content
-          $('#modal-title').html('Info for ' + data.short_url);
-          $('#link-id').html('Link ID: ' + data.id);
-          $('#link-url').html('Link URL: ' + data.short_url);
-          $('#link-destination').html(\`Link Destination: <a href="\${data.original_url}">\${data.original_url}</a>\`);
-          $('#link-clicks').html('Link Clicks: ' + data.current_clicks);
-          max_clicks = (data.max_clicks === -1) ? 'Unlimited' : data.max_clicks;
-          $('#link-max-clicks').html('Link Max Clicks: ' + max_clicks);
-          $('#link-expired').html('Link Expired: ' + data.expired);
-          expiration_date = (data.expiration_date === null) ? 'Never' : data.expiration_date;
-          $('#link-expiration-date').html('Link Expiration Date: ' + expiration_date);
-          $('#link-creation-date').html('Link Creation Date: ' + data.created_at);
-          $('#link-created-by').html('Created by: ' + data.created_by);
-          // Show the modal
-          $('#info-modal').modal('show');
-        }
-      }
-    );
+const USERSCRIPTS = String.raw`<script>
+  // Stored timestamps are ISO-8601, except rows migrated from Postgres, which
+  // are space-separated and zone-less but still UTC.
+  function parseStored(raw) {
+    let text = (raw || '').trim();
+    if (!text) return null;
+    let iso = text.indexOf('T') === -1 ? text.replace(' ', 'T') : text;
+    if (!/(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso)) iso += 'Z';
+    let parsed = new Date(iso);
+    return isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  function editLink(linkAlias) {
-    // GET request to /links/info/<alias> to get the info to fill the form
-    $.ajax(
-      {
-        url: '/links/info/' + linkAlias,
-        type: 'GET',
-        success: function (data) {
-          // Check if an error occurred
-          if (data.error) {
-            console.log(data.error);
-            return;
-          }
-          // Set the form's values
-          $('#edit-form').attr('action', '/links/edit/' + linkAlias);
-          $('#edit-form input[name="url"]').val(data.original_url);
-          $('#edit-form input[name="alias"]').val(data.short_url);
-          $('#edit-form input[name="old-alias"]').val(data.id);
-          $('#edit-form input[name="max_clicks"]').val(data.max_clicks);
-          // We want to convert the expiration_date to a local time and update the form
-          // Date comes in at 22 Nov 2023 00:00:00 GMT
-          let date = data.expiration_date;
-          if (date) {
-            // Create a new Date object and catch if it's invalid
-            let date_obj = new Date(date);
-            if (date_obj.toString() === 'Invalid Date') {
-              console.log('Invalid date')
-              $('#edit-form input[name="expiration_date_shown"]').val('');
-              $('#edit-form input[name="expiration_date"]').val('');
-            } else {
-              // Create a local date object
-              date_obj.setMinutes(date_obj.getMinutes() - date_obj.getTimezoneOffset());
-              $('#edit-form input[name="expiration_date_shown"]').val(date_obj.toISOString().slice(0, 16));
-              $('#edit-form input[name="expiration_date"]').val(date_obj.getTime());
-            }
-          }
-          $('#edit-modal-title').html('Editing ' + data.short_url);
-          // Show the modal
-          $('#edit-modal').modal('show');
-        }
-      }
-    );
+  function toLocalString(raw) {
+    let parsed = parseStored(raw);
+    return parsed ? parsed.toLocaleString() : raw;
   }
 
-  // Add our event listener to the submit button
+  function fetchInfo(id, onSuccess) {
+    $.get('/links/info/' + id, function (data) {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      onSuccess(data);
+    });
+  }
+
+  // Everything goes through .text(): link fields are user-supplied.
+  function showInfo(id) {
+    fetchInfo(id, function (data) {
+      $('#modal-title').text('Info for ' + data.short_url);
+      $('#link-id').text('Link ID: ' + data.id);
+      $('#link-url').text('Link URL: ' + data.short_url);
+      // Only http(s) destinations become clickable so a javascript: URL can't run here.
+      let destination = /^https?:/i.test(data.original_url)
+        ? $('<a>').attr('href', data.original_url).text(data.original_url)
+        : document.createTextNode(data.original_url);
+      $('#link-destination').text('Link Destination: ').append(destination);
+      $('#link-clicks').text('Link Clicks: ' + data.current_clicks);
+      $('#link-max-clicks').text('Link Max Clicks: ' + (data.max_clicks === -1 ? 'Unlimited' : data.max_clicks));
+      $('#link-expired').text('Link Expired: ' + data.expired);
+      $('#link-expiration-date').text('Link Expiration Date: ' + (data.expiration_date ? toLocalString(data.expiration_date) : 'Never'));
+      $('#link-creation-date').text('Link Creation Date: ' + toLocalString(data.created_at));
+      $('#link-created-by').text('Created by: ' + data.created_by);
+      $('#info-modal').modal('show');
+    });
+  }
+
+  function editLink(id) {
+    fetchInfo(id, function (data) {
+      let form = $('#edit-form');
+      form.find('[name="url"]').val(data.original_url);
+      form.find('[name="alias"]').val(data.short_url);
+      form.find('[name="link_id"]').val(data.id);
+      form.find('[name="max_clicks"]').val(data.max_clicks);
+      // datetime-local wants zone-less local wall-clock time.
+      let expires = parseStored(data.expiration_date);
+      if (expires) {
+        expires.setMinutes(expires.getMinutes() - expires.getTimezoneOffset());
+      }
+      form.find('[name="expiration_date_shown"]').val(expires ? expires.toISOString().slice(0, 16) : '');
+      $('#edit-modal-title').text('Editing ' + data.short_url);
+      $('#edit-modal').modal('show');
+    });
+  }
+
   $('#edit-form').submit(function (e) {
     e.preventDefault();
-    let expiration_date = $('#expiration_date_shown').val();
-    // Convert datetime-local to datetime as UTC
-    if (expiration_date) {
-      expiration_date = new Date(expiration_date).valueOf();
-    }
-    // Add the expiration_date to the form
-    $('#expiration_date').val(expiration_date);
-    // POST request to /links/edit/<alias>
-    console.log(\`Updating link \${$('#edit-form input[name="old-alias"]').val()}\`);
-    $.ajax(
-      {
-        url: '/links/edit/' + $('#edit-form input[name="old-alias"]').val(),
-        type: 'POST',
-        data: $('#edit-form').serialize(),
-        success: function (data) {
-          // Check if an error occurred
-          if (data.error) {
-            console.log(data.error);
-            return;
-          }
-          // Close the modal
-          $('#edit-modal').modal('hide');
-          // Reload the page
-          location.reload();
-        }
+    // Post an absolute ms epoch so the server never needs the viewer's timezone.
+    let shown = $('#expiration_date_shown').val();
+    $('#expiration_date').val(shown ? new Date(shown).valueOf() : '');
+    $.post('/links/edit/' + $('#link_id').val(), $(this).serialize(), function (data) {
+      if (data.error) {
+        alert(data.error);
+        return;
       }
-    );
+      location.reload();
+    });
   });
 
   $(document).ready(function () {
-    // Init datatables
-    let table = $('#links').DataTable({
-      "responsive": true,
-      "order": [[0, "desc"]],
-      "columnDefs": [
-        {
-          "targets": [0],
-          "visible": false,
-          "searchable": false
-        },
-        {
-          "targets": [-1, -2],
-          "orderable": false
-        }
+    // Localize before DataTables takes the rows out of the DOM for paging;
+    // data-order keeps sorting on the raw timestamp.
+    $('#links td.local-time').each(function () {
+      $(this).text(toLocalString($(this).text()));
+    });
+    $('#links').DataTable({
+      responsive: true,
+      order: [[0, 'desc']],
+      columnDefs: [
+        { targets: [0], visible: false, searchable: false },
+        { targets: [-1], orderable: false }
       ]
-    });
-
-    // Loop through all the expiration-date-* elements and convert them to local time
-    $('#links').find('td[id^=expiration-date-]').each(function () {
-      let date = $(this).text();
-      let day = date.split(" ")[0];
-      let time = date.split(" ")[1];
-      let temp_date = day + "T" + time + "Z";
-      // Create a new Date object and catch if it's invalid
-      let date_obj = new Date(temp_date);
-      if (date_obj.toString() === 'Invalid Date') {
-        $(this).text(date);
-      } else {
-        let local_date = date_obj.toLocaleString();
-        $(this).text(local_date);
-      }
-    });
-    // Loop through all the creation-date-* elements and convert them to local time
-    $('#links').find('td[id^=creation-date-]').each(function () {
-      let date = $(this).text();
-      let day = date.split(" ")[0];
-      let time = date.split(" ")[1];
-      let temp_date = day + "T" + time + "Z";
-      // Create a new Date object and catch if it's invalid
-      let date_obj = new Date(temp_date);
-      if (date_obj.toString() === 'Invalid Date') {
-        $(this).text(date);
-      } else {
-        let local_date = date_obj.toLocaleString();
-        $(this).text(local_date);
-      }
     });
   });
 </script>`;
 
+function actionButton(id: string, action: string, title: string, style: string, icon: string): string {
+	return `<button data-bs-toggle="tooltip" data-bs-placement="top" title="${title}" onclick="document.forms.${id}.submit()"
+        class="btn btn-${style} btn-sm"><i class="fa-solid ${icon}"></i></button>
+  <form id="${id}" action="${action}" method="post"></form>`;
+}
+
 function linkRow(link: Link): string {
-	const clicks =
-		link.max_clicks === -1 ? `${link.current_clicks}` : `${link.current_clicks} / ${link.max_clicks}`;
+	const clicks = link.max_clicks === -1 ? `${link.current_clicks}` : `${link.current_clicks} / ${link.max_clicks}`;
 	const actions = link.deleted
-		? `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Restore" onclick="document.forms.restore_${link.id}.submit()"
-        class="btn btn-success btn-sm"><i class="fa-solid fa-undo"></i></button>
-  <form id="restore_${link.id}" action="/links/restore/${link.id}" method="post"></form>
-  <button data-bs-toggle="tooltip" data-bs-placement="top" title="Hard Delete"
-      onclick="document.forms.hard_delete_${link.id}.submit()"
-      class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i>
-  </button>
-  <form id="hard_delete_${link.id}" action="/links/hard_delete/${link.id}" method="post"></form>`
-		: `<button data-bs-toggle="tooltip" data-bs-placement="top" title="Soft Delete" onclick="document.forms.delete_${link.id}.submit()"
-        class="btn btn-danger btn-sm"><i class="fa-solid fa-trash-can"></i></button>
-  <form id="delete_${link.id}" action="/links/delete/${link.id}" method="post"></form>`;
+		? actionButton(`restore_${link.id}`, `/links/restore/${link.id}`, 'Restore', 'success', 'fa-undo')
+		+ actionButton(`hard_delete_${link.id}`, `/links/hard_delete/${link.id}`, 'Hard Delete', 'danger', 'fa-trash-can')
+		: actionButton(`delete_${link.id}`, `/links/delete/${link.id}`, 'Soft Delete', 'danger', 'fa-trash-can');
+	const expiration = esc(link.expiration_date ?? '');
+	const created = esc(link.created_at);
 	return `<tr>
     <th scope="row">${link.id}</th>
-    <td>
-      <a href="/${esc(link.short_url)}">${esc(link.short_url)}</a>
-    </td>
+    <td><a href="/${encodeURIComponent(link.short_url)}">${esc(link.short_url)}</a></td>
     <td>${esc(link.original_url)}</td>
     <td>${clicks}</td>
-    <td id="expiration-date-${link.id}">${esc(link.expiration_date ?? '')}</td>
-    <td id="creation-date-${link.id}">${esc(link.created_at)}</td>
+    <td class="local-time" data-order="${expiration}">${expiration}</td>
+    <td class="local-time" data-order="${created}">${created}</td>
     <td>
-      <!-- POST delete button -->
       <div class="btn-group" role="group">
         ${actions}
-        <button onclick="showInfo('${link.id}')" class="btn btn-primary btn-sm"
-            data-bs-toggle="tooltip" data-bs-placement="top" title="Info"><i
-            class="fa-solid fa-eye"></i></button>
-        <button onclick="editLink('${link.id}')" class="btn btn-info btn-sm"
-            data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i
-            class="fa-solid fa-edit"></i></button>
+        <button onclick="showInfo(${link.id})" class="btn btn-primary btn-sm"
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Info"><i class="fa-solid fa-eye"></i></button>
+        <button onclick="editLink(${link.id})" class="btn btn-info btn-sm"
+            data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="fa-solid fa-edit"></i></button>
       </div>
     </td>
   </tr>`;
 }
 
-// Port of templates/links.html; rows are rendered server-side exactly as the
-// Jinja loop did.
-export function linksPage(opts: { theme: string; user: { username: string; }; links: Link[]; msg?: string; msg_type?: string; }): string {
+export function linksPage(opts: PageOptions & { links: Link[]; }): string {
 	const rows = opts.links.map(link => linkRow(link)).join('\n');
 	const content = `<div class="container mt-2">
   <table class="table table-striped table-hover" id="links">
@@ -264,7 +188,9 @@ export function linksPage(opts: { theme: string; user: { username: string; }; li
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form method="POST" action="#" id="edit-form">
+          <form id="edit-form">
+            <input type="hidden" id="link_id" name="link_id">
+            <input type="hidden" id="expiration_date" name="expiration_date">
             <div class="row">
               <div class="col">
                 <div class="form-group">
@@ -280,41 +206,21 @@ export function linksPage(opts: { theme: string; user: { username: string; }; li
                          name="alias" autocomplete="off" required>
                 </div>
               </div>
-              <div class="col" hidden>
-                <div class="form-group">
-                  <label for="old-alias">Old Alias</label>
-                  <input type="text" class="form-control" id="old-alias" placeholder="Enter alias"
-                         name="old-alias" autocomplete="off" readonly>
-                </div>
-              </div>
             </div>
             <div class="row">
               <div class="col">
-                <!-- Max view count -->
                 <div class="form-group">
                   <label for="max_clicks">Max Click Count</label>
                   <input type="number" class="form-control" id="max_clicks"
                          placeholder="-1" name="max_clicks" value="-1">
-                  <small class="text-muted">Setting this value to -1 will disable the
-                      maximum</small>
+                  <small class="text-muted">Setting this value to -1 will disable the maximum</small>
                 </div>
               </div>
               <div class="col">
-                <!-- Expiration date -->
-                <div class="col">
-                  <!-- Expiration date -->
-                  <div class="form-group">
-                    <label for="expiration_date_shown">Expiration Date</label>
-                    <input type="datetime-local" class="form-control" id="expiration_date_shown" name="expiration_date_shown">
-                    <small class="text-muted">Setting this value to empty will disable the expiration</small>
-                  </div>
-                </div>
-                <div class="col" hidden>
-                  <!-- Expiration date -->
-                  <div class="form-group">
-                    <label for="expiration_date">Expiration Date</label>
-                    <input type="number" class="form-control" id="expiration_date" name="expiration_date">
-                  </div>
+                <div class="form-group">
+                  <label for="expiration_date_shown">Expiration Date</label>
+                  <input type="datetime-local" class="form-control" id="expiration_date_shown" name="expiration_date_shown">
+                  <small class="text-muted">Setting this value to empty will disable the expiration</small>
                 </div>
               </div>
             </div>
@@ -322,7 +228,6 @@ export function linksPage(opts: { theme: string; user: { username: string; }; li
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-          <!-- Submit button for form -->
           <button type="submit" class="btn btn-success" form="edit-form">Save</button>
         </div>
       </div>

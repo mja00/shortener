@@ -1,7 +1,8 @@
 import { baseLayout } from './base';
 
-// Port of templates/register.html.
-export function registerPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+import type { PageOptions } from './base';
+
+export function registerPage(opts: PageOptions): string {
 	const content = `<div class="container col-4 mt-2 mb-2">
   <div class="card">
     <div class="card-header">

@@ -1,5 +1,5 @@
 import type * as worker from '../src/index';
-import type { Bindings } from '../src/index';
+import type { Bindings } from '../src/types';
 import type { D1Migration } from 'cloudflare:test';
 
 declare global {

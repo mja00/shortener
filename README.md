@@ -83,7 +83,7 @@ Plain variables live in `[vars]` in `wrangler.toml`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `DISABLE_REGISTRATION` | unset (open) | `true`, `1`, or `t` blocks new signups. |
+| `DISABLE_REGISTRATION` | unset (open) | `true`, `1`, or `t` blocks new signups. `/register` then redirects to `/login` with a "Registration is disabled." notice. |
 | `ROOT_REDIRECT` | unset | If set, logged-out visitors hitting `/` are redirected here instead of seeing the homepage. `/login` still works directly. |
 | `NOT_FOUND_BEHAVIOR` | `redirect` | What unknown aliases do: `redirect` sends them to `/`, `404` returns a plain 404. |
 | `THEME` | `darkly` | Any [Bootswatch](https://bootswatch.com/) theme name, e.g. `slate`, `lumen`, `flatly`. |
@@ -181,7 +181,7 @@ npm test
 
 - `src/routes/` HTTP handlers: `web.ts` (UI), `api.ts`, `redirect.ts` (the `/:alias` catch-all)
 - `src/views/` HTML templates
-- `src/lib/` auth, DB helpers, alias and date normalization
+- `src/lib/` auth, DB helpers, link queries (`links.ts`), alias and date normalization
 - `migrations/` D1 schema
 - `test/` Vitest suite running against a local D1
 
@@ -194,5 +194,6 @@ Behavior differences from the Flask app:
 - `expiration_date` is stored as ISO-8601 everywhere. The old app treated it as seconds in the API but milliseconds in the web UI.
 - `DISABLE_REGISTRATION` actually blocks registration.
 - Unknown country codes (e.g. Tor's `T1`) show as `Unknown` instead of erroring.
+- Country names come from the runtime's built-in `Intl` data, so a few new visits use current names (e.g. `Czechia`, `Türkiye`) where older rows have the Flask app's.
 - Click counting is atomic.
 - Hard delete works (the old app hit a foreign key error).

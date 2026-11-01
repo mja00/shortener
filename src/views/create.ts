@@ -1,65 +1,23 @@
 import { baseLayout } from './base';
 
-// Port of templates/create.html, userscripts included verbatim (the hidden
-// form carries expiration_date as a ms epoch string, matching the server-side
-// normalizeExpiration contract).
+import type { PageOptions } from './base';
+
+// datetime-local is browser-local time, so post an absolute ms epoch and the server never needs the viewer's timezone.
 const USERSCRIPTS = `<script>
-  function createUrl() {
-    console.log("createUrl");
-    let url = $('#url').val();
-    let alias = $('#alias').val();
-    let max_clicks = $('#max_clicks').val();
-    let expiration_date = $('#expiration_date_shown').val();
-    // Convert datetime-local to datetime as UTC
-    if (expiration_date) {
-      expiration_date = new Date(expiration_date).valueOf();
-    }
-    // Create a hidden form with this data and submit it
-    let form = $('<form>', {
-      'action': '/create',
-      'method': 'POST',
-      'hidden': true
-    });
-    form.append($('<input>', {
-      'type': 'hidden',
-      'name': 'url',
-      'value': url
-    }));
-    form.append($('<input>', {
-      'type': 'hidden',
-      'name': 'alias',
-      'value': alias
-    }));
-    form.append($('<input>', {
-      'type': 'hidden',
-      'name': 'max_clicks',
-      'value': max_clicks
-    }));
-    form.append($('<input>', {
-      'type': 'hidden',
-      'name': 'expiration_date',
-      'value': expiration_date
-    }));
-    $('body').append(form);
-    form.submit();
-  }
-  // Get the form and add an event listener
-  document.getElementById('create-form').addEventListener('submit', function (e) {
-    console.log('form submitted');
-    e.preventDefault();
-    createUrl();
+  document.getElementById('create-form').addEventListener('submit', function () {
+    let shown = document.getElementById('expiration_date_shown').value;
+    document.getElementById('expiration_date').value = shown ? new Date(shown).valueOf() : '';
   });
 </script>`;
 
-// Port of templates/create.html.
-export function createPage(opts: { theme: string; msg?: string; msg_type?: string; }): string {
+export function createPage(opts: PageOptions): string {
 	const content = `<div class="container mt-2">
   <div class="card">
     <div class="card-header">
       Create new short URL
     </div>
     <div class="card-body">
-      <form method="POST" action="#" id="create-form">
+      <form method="POST" action="/create" id="create-form">
         <div class="row">
           <div class="col">
             <div class="form-group">
